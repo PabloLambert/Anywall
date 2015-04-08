@@ -1,0 +1,6 @@
+/Users/InnovaTI/AndroidStudioProjects/Anywall/app/build/intermediates/classes/debug
+/Users/InnovaTI/AndroidStudioProjects/Anywall/app/build/intermediates/pre-dexed/debug/support-annotations-20.0.0-3d5277584cc4f3f5d175bee49e9cfe38f7bd74a5.jar
+/Users/InnovaTI/AndroidStudioProjects/Anywall/app/build/intermediates/pre-dexed/debug/internal_impl-20.0.0-49aa7d427a3570fb2f21375cf21d22f976dca6e0.jar
+/Users/InnovaTI/AndroidStudioProjects/Anywall/app/build/intermediates/pre-dexed/debug/classes-6f57717870f5904358dad6ca5a98bab86440f72c.jar
+/Users/InnovaTI/AndroidStudioProjects/Anywall/app/build/intermediates/pre-dexed/debug/Parse-1.6.0-11112b839064df147aa371d3c54087039dc6a458.jar
+/Users/InnovaTI/AndroidStudioProjects/Anywall/app/build/intermediates/pre-dexed/debug/classes-67754be28960c449e8e855157614f284c8f0a2a2.jar
