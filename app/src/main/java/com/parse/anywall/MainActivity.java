@@ -184,6 +184,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         usernameView.setText(post.getUser().getUsername());
         return view;
       }
+
     };
 
     // Disable automatic loading when the adapter is attached to a view.
