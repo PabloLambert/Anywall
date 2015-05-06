@@ -238,12 +238,15 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     Button postButton = (Button) findViewById(R.id.post_button);
     postButton.setOnClickListener(new OnClickListener() {
       public void onClick(View v) {
+
+
         // Only allow posts if we have a location
         Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
+
         if (myLoc == null) {
           Toast.makeText(MainActivity.this,
               "Please try again after your location appears on the map.", Toast.LENGTH_LONG).show();
-          return;
+          //return;
         }
 
         Intent intent = new Intent(MainActivity.this, PostActivity.class);

@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -22,7 +23,7 @@ import com.parse.SaveCallback;
 /**
  * Activity which displays a login screen to the user, offering registration as well.
  */
-public class PostActivity extends Activity {
+public class PostActivity extends FragmentActivity {
   // UI references.
   private EditText postEditText;
   private TextView characterCountTextView;
@@ -39,7 +40,11 @@ public class PostActivity extends Activity {
 
     Intent intent = getIntent();
     Location location = intent.getParcelableExtra(Application.INTENT_EXTRA_LOCATION);
-    geoPoint = new ParseGeoPoint(location.getLatitude(), location.getLongitude());
+    if ( location == null ) {
+      geoPoint = null;
+    } else {
+      geoPoint = new ParseGeoPoint(location.getLatitude(), location.getLongitude());
+    }
 
     postEditText = (EditText) findViewById(R.id.post_edittext);
     postEditText.addTextChangedListener(new TextWatcher() {

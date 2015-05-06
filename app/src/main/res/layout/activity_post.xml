@@ -8,10 +8,90 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".PostActivity" >
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="false"
+        android:id="@+id/l1">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Nombre:"
+            android:id="@+id/textView" />
+
+        <EditText
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textName" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/l2"
+        android:layout_below="@+id/l1">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Colegio:"
+            android:id="@+id/textView2" />
+
+        <EditText
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textSchool" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/l3"
+        android:layout_below="@+id/l2">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Dirección:"
+            android:id="@+id/textView3" />
+
+        <EditText
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textHome" />
+    </LinearLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Buscar"
+        android:id="@+id/btnSearchHome"
+        android:layout_below="@+id/l3"
+        android:layout_alignParentRight="true" />
+
+
+    <fragment
+        android:id="@+id/map_fragment_home"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="fill_parent"
+        android:layout_height="100dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp"
+        android:layout_below="@+id/btnSearchHome" />
+
     <EditText
         android:id="@+id/post_edittext"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="100dp"
         android:layout_above="@+id/character_count_textview"
         android:background="@null"
         android:hint="@string/prompt_post"

@@ -10,13 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <Button
-        android:id="@+id/post_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/post"
-        android:textAppearance="?android:attr/textAppearanceSmallInverse" />
-
     <fragment
         android:id="@+id/map_fragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -24,6 +17,13 @@
         android:layout_height="fill_parent"
         android:layout_weight="1"
         android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/post_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/post"
+        android:textAppearance="?android:attr/textAppearanceSmallInverse" />
 
     <ListView
         android:id="@+id/posts_listview"
