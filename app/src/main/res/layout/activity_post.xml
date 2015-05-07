@@ -83,22 +83,10 @@
         android:id="@+id/map_fragment_home"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="fill_parent"
-        android:layout_height="100dp"
+        android:layout_height="200dp"
         android:layout_weight="1"
         android:layout_marginTop="16dp"
         android:layout_below="@+id/btnSearchHome" />
-
-    <EditText
-        android:id="@+id/post_edittext"
-        android:layout_width="fill_parent"
-        android:layout_height="100dp"
-        android:layout_above="@+id/character_count_textview"
-        android:background="@null"
-        android:hint="@string/prompt_post"
-        android:inputType="textMultiLine"
-        android:gravity="top" >
-        <requestFocus />
-    </EditText>
 
     <Button
         android:id="@+id/post_button"
@@ -110,18 +98,5 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:text="@string/post" />
-    
-	<TextView
-        android:id="@+id/character_count_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="@dimen/activity_vertical_margin"
-        android:layout_above="@id/post_button"
-        android:text="@string/character_count_placeholder"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-    
+
 </RelativeLayout>

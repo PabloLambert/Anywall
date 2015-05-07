@@ -33,6 +33,8 @@ public class Application extends android.app.Application {
     super.onCreate();
 
     ParseObject.registerSubclass(AnywallPost.class);
+    ParseObject.registerSubclass(Student.class);
+
     Parse.initialize(this, "IU2UBVRnjfs8g65F1ixTOrFMnsUFDmSrptwjh9wq", "C0Ghf2UcrxJgWA9P8IxlRenltHnqiYOggFIzBnLn");
 
     preferences = getSharedPreferences("com.parse.anywall", Context.MODE_PRIVATE);

@@ -12,21 +12,23 @@ import com.parse.ParseUser;
  */
 @ParseClassName("Student")
 public class Student extends ParseObject {
-    public String getText() {
-        return getString("text");
+
+    public String getName() {
+        return getString("name");
     }
 
-    public void setText(String value) {
-        put("text", value);
+    public void setName(String value) {
+        put("name", value);
     }
 
-    public ParseUser getUser() {
-        return getParseUser("user");
+    public String getSchool() {
+        return getString("school");
     }
 
-    public void setUser(ParseUser value) {
-        put("user", value);
+    public void setSchool(String value) {
+        put("school", value);
     }
+
 
     public ParseGeoPoint getLocation() {
         return getParseGeoPoint("location");
