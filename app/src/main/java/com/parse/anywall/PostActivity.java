@@ -185,6 +185,9 @@ public class PostActivity extends FragmentActivity {
     student.setName(name);
     student.setSchool(school);
 
+    ParseUser user = ParseUser.getCurrentUser();
+    student.setACL(new ParseACL(user));
+
     // Save the Student
     student.saveInBackground(new SaveCallback() {
       @Override
