@@ -14,7 +14,7 @@
         android:id="@+id/map_fragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="300dp"
         android:layout_weight="1"
         android:layout_marginTop="16dp" />
 
@@ -26,9 +26,15 @@
         android:textAppearance="?android:attr/textAppearanceSmallInverse" />
 
     <ListView
+        android:layout_width="fill_parent"
+        android:layout_height="100dp"
+        android:id="@+id/student_listview"
+        android:layout_weight="1" />
+
+    <ListView
         android:id="@+id/posts_listview"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="100dp"
         android:layout_weight="1" />
 
 </LinearLayout>

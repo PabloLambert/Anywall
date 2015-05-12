@@ -57,6 +57,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     GooglePlayServicesClient.ConnectionCallbacks,
     GooglePlayServicesClient.OnConnectionFailedListener {
 
+  private final static String TAG = MainActivity.class.getSimpleName();
   /*
    * Define a request code to send to Google Play services This code is returned in
    * Activity.onActivityResult
@@ -133,6 +134,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   // Adapter for the Parse query
   private ParseQueryAdapter<AnywallPost> postsQueryAdapter;
+  private ParseQueryAdapter<Student> studentQueryAdapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -187,6 +189,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     };
 
+
     // Disable automatic loading when the adapter is attached to a view.
     postsQueryAdapter.setAutoload(false);
 
@@ -221,6 +224,37 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         }
       }
     });
+
+
+    ParseQueryAdapter.QueryFactory<Student> factory2 = new ParseQueryAdapter.QueryFactory<Student>() {
+      @Override
+      public ParseQuery<Student> create() {
+        ParseQuery<Student> query = Student.getQuery();
+        return query;
+      }
+    };
+
+    studentQueryAdapter = new ParseQueryAdapter<Student>(this, factory2) {
+      @Override
+      public View getItemView (Student student, View view, ViewGroup parent) {
+        if (view == null ) {
+          view = View.inflate(getContext(), R.layout.student_item, null);
+        }
+        TextView nameView = (TextView) view.findViewById(R.id.student_name_view);
+        TextView schoolView = (TextView) view.findViewById(R.id.student_school_view);
+        nameView.setText(student.getName());
+        schoolView.setText(student.getSchool());
+        Log.d(TAG, "adding student: " + student.getName());
+
+        return view;
+      }
+    };
+    studentQueryAdapter.setAutoload(true);
+    studentQueryAdapter.setPaginationEnabled(true);
+
+    ListView studentListView = (ListView) findViewById(R.id.student_listview);
+    studentListView.setAdapter(studentQueryAdapter);
+
 
     // Set up the map fragment
     mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
@@ -495,6 +529,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       // usually on updated location data.
       postsQueryAdapter.loadObjects();
     }
+    studentQueryAdapter.loadObjects();
   }
 
   /*
