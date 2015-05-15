@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -136,6 +137,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
   private ParseQueryAdapter<AnywallPost> postsQueryAdapter;
   private ParseQueryAdapter<Student> studentQueryAdapter;
 
+  private ImageButton btnAddPlace;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -225,7 +228,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       }
     });
 
-
     ParseQueryAdapter.QueryFactory<Student> factory2 = new ParseQueryAdapter.QueryFactory<Student>() {
       @Override
       public ParseQuery<Student> create() {
@@ -254,6 +256,44 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     ListView studentListView = (ListView) findViewById(R.id.student_listview);
     studentListView.setAdapter(studentQueryAdapter);
+
+    studentListView.setOnItemClickListener(new OnItemClickListener() {
+      @Override
+      public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+        final Student item = studentQueryAdapter.getItem(i);
+        selectedPostObjectId = item.getObjectId();
+        mapFragment.getMap().animateCamera(
+                CameraUpdateFactory.newLatLng(new LatLng(item.getLocation().getLatitude(), item
+                        .getLocation().getLongitude())), new CancelableCallback() {
+                  public void onFinish() {
+                    Marker marker = mapMarkers.get(item.getObjectId());
+                    if (marker != null) {
+                      marker.showInfoWindow();
+                    }
+                  }
+
+                  public void onCancel() {
+                  }
+                });
+        Marker marker = mapMarkers.get(item.getObjectId());
+        if (marker != null) {
+          marker.showInfoWindow();
+        }
+
+      }
+    });
+
+    btnAddPlace = (ImageButton) findViewById(R.id.btnAddPlace);
+    btnAddPlace.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+        Intent intent = new Intent(MainActivity.this, PlacesActivity.class);
+        startActivity(intent);
+
+      }
+    });
 
 
     // Set up the map fragment
@@ -344,6 +384,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Query for the latest data to update the views.
     doMapQuery();
     doListQuery();
+    //doMapQuery2();
   }
 
   /*
@@ -532,6 +573,36 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     studentQueryAdapter.loadObjects();
   }
 
+  private void doMapQuery2() {
+    ParseQuery<Student> mapQuery = Student.getQuery();
+    mapQuery.findInBackground(new FindCallback<Student>() {
+      @Override
+      public void done(List<Student> list, ParseException e) {
+        if (e != null) {
+          if (Application.APPDEBUG) {
+            Log.d(Application.APPTAG, "An error occurred while querying for map students.", e);
+          }
+          return;
+        }
+        for (Student s: list ) {
+
+          MarkerOptions markerOpts =
+                  new MarkerOptions().position(new LatLng(s.getLocation().getLatitude(), s
+                          .getLocation().getLongitude()));
+
+          Marker marker = mapFragment.getMap().addMarker(markerOpts);
+          mapMarkers.put(s.getObjectId(), marker);
+          if (s.getObjectId().equals(selectedPostObjectId)) {
+            marker.showInfoWindow();
+            selectedPostObjectId = null;
+          }
+        }
+
+
+      }
+
+    });
+  }
   /*
    * Set up the query to update the map view
    */

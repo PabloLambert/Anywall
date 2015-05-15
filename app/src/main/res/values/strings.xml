@@ -18,5 +18,8 @@
     <string name="settings_distance_format">%d feet</string>
     <string name="activity_post_title">Agregar Estudiante</string>
     <string name="character_count_placeholder">0/140</string>
+    <string name="title_activity_places">Lugares</string>
+
+    <string name="hello_world">Hello world!</string>
 
 </resources>
