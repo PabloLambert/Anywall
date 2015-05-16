@@ -26,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -137,7 +138,11 @@ public class MainActivity extends FragmentActivity implements LocationListener,
   private ParseQueryAdapter<AnywallPost> postsQueryAdapter;
   private ParseQueryAdapter<Student> studentQueryAdapter;
 
-  private ImageButton btnAddPlace;
+  private ImageButton btnAddPlace, btnAddStudent;
+  private LinearLayout llPlaces, llStudents;
+  private int countPlaces = 0, countStudents = 0;
+
+  private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -148,8 +153,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     // Create a new global location parameters object
     locationRequest = LocationRequest.create();
-
-    // Set the update interval
     locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
 
     // Use high accuracy
@@ -161,128 +164,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Create a new location client, using the enclosing class to handle callbacks.
     locationClient = new LocationClient(this, this, this);
 
-    // Set up a customized query
-    ParseQueryAdapter.QueryFactory<AnywallPost> factory =
-        new ParseQueryAdapter.QueryFactory<AnywallPost>() {
-          public ParseQuery<AnywallPost> create() {
-            Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-            ParseQuery<AnywallPost> query = AnywallPost.getQuery();
-            query.include("user");
-            query.orderByDescending("createdAt");
-            query.whereWithinKilometers("location", geoPointFromLocation(myLoc), radius
-                * METERS_PER_FEET / METERS_PER_KILOMETER);
-            query.setLimit(MAX_POST_SEARCH_RESULTS);
-            return query;
-          }
-        };
-
-    // Set up the query adapter
-    postsQueryAdapter = new ParseQueryAdapter<AnywallPost>(this, factory) {
-      @Override
-      public View getItemView(AnywallPost post, View view, ViewGroup parent) {
-        if (view == null) {
-          view = View.inflate(getContext(), R.layout.anywall_post_item, null);
-        }
-        TextView contentView = (TextView) view.findViewById(R.id.content_view);
-        TextView usernameView = (TextView) view.findViewById(R.id.username_view);
-        contentView.setText(post.getText());
-        usernameView.setText(post.getUser().getUsername());
-        return view;
-      }
-
-    };
-
-
-    // Disable automatic loading when the adapter is attached to a view.
-    postsQueryAdapter.setAutoload(false);
-
-    // Disable pagination, we'll manage the query limit ourselves
-    postsQueryAdapter.setPaginationEnabled(false);
-
-    // Attach the query adapter to the view
-    ListView postsListView = (ListView) findViewById(R.id.posts_listview);
-    postsListView.setAdapter(postsQueryAdapter);
-
-    // Set up the handler for an item's selection
-    postsListView.setOnItemClickListener(new OnItemClickListener() {
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        final AnywallPost item = postsQueryAdapter.getItem(position);
-        selectedPostObjectId = item.getObjectId();
-        mapFragment.getMap().animateCamera(
-            CameraUpdateFactory.newLatLng(new LatLng(item.getLocation().getLatitude(), item
-                .getLocation().getLongitude())), new CancelableCallback() {
-              public void onFinish() {
-                Marker marker = mapMarkers.get(item.getObjectId());
-                if (marker != null) {
-                  marker.showInfoWindow();
-                }
-              }
-
-              public void onCancel() {
-              }
-            });
-        Marker marker = mapMarkers.get(item.getObjectId());
-        if (marker != null) {
-          marker.showInfoWindow();
-        }
-      }
-    });
-
-    ParseQueryAdapter.QueryFactory<Student> factory2 = new ParseQueryAdapter.QueryFactory<Student>() {
-      @Override
-      public ParseQuery<Student> create() {
-        ParseQuery<Student> query = Student.getQuery();
-        return query;
-      }
-    };
-
-    studentQueryAdapter = new ParseQueryAdapter<Student>(this, factory2) {
-      @Override
-      public View getItemView (Student student, View view, ViewGroup parent) {
-        if (view == null ) {
-          view = View.inflate(getContext(), R.layout.student_item, null);
-        }
-        TextView nameView = (TextView) view.findViewById(R.id.student_name_view);
-        TextView schoolView = (TextView) view.findViewById(R.id.student_school_view);
-        nameView.setText(student.getName());
-        schoolView.setText(student.getSchool());
-        Log.d(TAG, "adding student: " + student.getName());
-
-        return view;
-      }
-    };
-    studentQueryAdapter.setAutoload(true);
-    studentQueryAdapter.setPaginationEnabled(true);
-
-    ListView studentListView = (ListView) findViewById(R.id.student_listview);
-    studentListView.setAdapter(studentQueryAdapter);
-
-    studentListView.setOnItemClickListener(new OnItemClickListener() {
-      @Override
-      public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-        final Student item = studentQueryAdapter.getItem(i);
-        selectedPostObjectId = item.getObjectId();
-        mapFragment.getMap().animateCamera(
-                CameraUpdateFactory.newLatLng(new LatLng(item.getLocation().getLatitude(), item
-                        .getLocation().getLongitude())), new CancelableCallback() {
-                  public void onFinish() {
-                    Marker marker = mapMarkers.get(item.getObjectId());
-                    if (marker != null) {
-                      marker.showInfoWindow();
-                    }
-                  }
-
-                  public void onCancel() {
-                  }
-                });
-        Marker marker = mapMarkers.get(item.getObjectId());
-        if (marker != null) {
-          marker.showInfoWindow();
-        }
-
-      }
-    });
 
     btnAddPlace = (ImageButton) findViewById(R.id.btnAddPlace);
     btnAddPlace.setOnClickListener(new OnClickListener() {
@@ -294,6 +175,28 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
       }
     });
+    btnAddPlace.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View view) {
+        Intent intent = new Intent(MainActivity.this, PlacesActivity.class);
+        intent.putExtra("10", 20);
+        startActivity(intent);
+        return false;
+      }
+    });
+
+    llPlaces = (LinearLayout) findViewById(R.id.llPlaces);
+
+    btnAddStudent = (ImageButton) findViewById(R.id.btnAddStudent);
+    btnAddStudent.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent intent = new Intent(MainActivity.this, PostActivity.class);
+        startActivity(intent);
+      }
+    });
+
+    llStudents = (LinearLayout) findViewById(R.id.llStudents);
 
 
     // Set up the map fragment
@@ -301,33 +204,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Enable the current location "blue dot"
     mapFragment.getMap().setMyLocationEnabled(true);
     // Set up the camera change handler
-    mapFragment.getMap().setOnCameraChangeListener(new OnCameraChangeListener() {
-      public void onCameraChange(CameraPosition position) {
-        // When the camera changes, update the query
-        doMapQuery();
-      }
-    });
-
-    // Set up the handler for the post button click
-    Button postButton = (Button) findViewById(R.id.post_button);
-    postButton.setOnClickListener(new OnClickListener() {
-      public void onClick(View v) {
-
-
-        // Only allow posts if we have a location
-        Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-
-        if (myLoc == null) {
-          Toast.makeText(MainActivity.this,
-              "Please try again after your location appears on the map.", Toast.LENGTH_LONG).show();
-          //return;
-        }
-
-        Intent intent = new Intent(MainActivity.this, PostActivity.class);
-        intent.putExtra(Application.INTENT_EXTRA_LOCATION, myLoc);
-        startActivity(intent);
-      }
-    });
   }
 
   /*
@@ -382,9 +258,12 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Save the current radius
     lastRadius = radius;
     // Query for the latest data to update the views.
-    doMapQuery();
-    doListQuery();
-    //doMapQuery2();
+
+    mapFragment.getMap().clear();
+    mapMarkers2.clear();
+
+    doPlacesQuery();
+    doStudentQuery();
   }
 
   /*
@@ -528,8 +407,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     }
     // Update map radius indicator
     updateCircle(myLatLng);
-    doMapQuery();
-    doListQuery();
+
   }
 
   /*
@@ -559,145 +437,101 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     }
   }
 
-  /*
-   * Set up a query to update the list view
-   */
-  private void doListQuery() {
-    Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-    // If location info is available, load the data
-    if (myLoc != null) {
-      // Refreshes the list view with new data based
-      // usually on updated location data.
-      postsQueryAdapter.loadObjects();
-    }
-    studentQueryAdapter.loadObjects();
+
+
+  private void doPlacesQuery() {
+
+    llPlaces.removeViews(0, countPlaces);
+
+    ParseQuery<Places> query = ParseQuery.getQuery("Places");
+    query.findInBackground(new FindCallback<Places>() {
+      @Override
+      public void done(List<Places> list, ParseException e) {
+        if (e != null) {
+          Toast.makeText(getApplicationContext(), "Error en obtener lugares", Toast.LENGTH_SHORT).show();
+        } else {
+
+          countPlaces = list.size();
+          for (int i = 0; i < countPlaces; i++) {
+            Button tmpButton = new Button(getApplicationContext());
+            Places p = list.get(i);
+            tmpButton.setText(p.getName());
+            tmpButton.setTag(p);
+            addAction(tmpButton);
+            llPlaces.addView(tmpButton, i);
+          }
+        }
+      }
+    });
   }
 
-  private void doMapQuery2() {
-    ParseQuery<Student> mapQuery = Student.getQuery();
-    mapQuery.findInBackground(new FindCallback<Student>() {
+  private void addAction( Button btn) {
+
+    btn.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+
+        Places p = (Places) view.getTag();
+
+
+        if ( mapMarkers2.get(p.getObjectId())  == null  ) {
+
+          MarkerOptions markerOpts =
+                  new MarkerOptions().position(new LatLng(p.getLocation().getLatitude(), p
+                          .getLocation().getLongitude()));
+          Marker marker = mapFragment.getMap().addMarker(markerOpts);
+
+          mapMarkers2.put(p.getObjectId(), marker);
+
+        }
+
+        mapFragment.getMap().animateCamera(
+                CameraUpdateFactory.newLatLng(new LatLng(
+                        p.getLocation().getLatitude(),
+                        p.getLocation().getLongitude())), new CancelableCallback() {
+                  @Override
+                  public void onFinish() {
+
+                  }
+
+                  @Override
+                  public void onCancel() {
+
+                  }
+                }
+
+        );
+      }
+    });
+  }
+
+
+  private void doStudentQuery() {
+
+    llStudents.removeViews(0, countStudents);
+
+    ParseQuery<Student> query = ParseQuery.getQuery("Student");
+    query.findInBackground(new FindCallback<Student>() {
       @Override
       public void done(List<Student> list, ParseException e) {
         if (e != null) {
-          if (Application.APPDEBUG) {
-            Log.d(Application.APPTAG, "An error occurred while querying for map students.", e);
-          }
-          return;
-        }
-        for (Student s: list ) {
+          Toast.makeText(getApplicationContext(), "Error en obtener estudiantes", Toast.LENGTH_SHORT).show();
+        } else {
 
-          MarkerOptions markerOpts =
-                  new MarkerOptions().position(new LatLng(s.getLocation().getLatitude(), s
-                          .getLocation().getLongitude()));
-
-          Marker marker = mapFragment.getMap().addMarker(markerOpts);
-          mapMarkers.put(s.getObjectId(), marker);
-          if (s.getObjectId().equals(selectedPostObjectId)) {
-            marker.showInfoWindow();
-            selectedPostObjectId = null;
+          countStudents = list.size();
+          for (int i = 0; i < countStudents; i++) {
+            Button tmpButton = new Button(getApplicationContext());
+            Student s = list.get(i);
+            tmpButton.setText(s.getName());
+            llPlaces.addView(tmpButton, i);
           }
         }
-
-
-      }
-
-    });
-  }
-  /*
-   * Set up the query to update the map view
-   */
-  private void doMapQuery() {
-    final int myUpdateNumber = ++mostRecentMapUpdate;
-    Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-    // If location info isn't available, clean up any existing markers
-    if (myLoc == null) {
-      cleanUpMarkers(new HashSet<String>());
-      return;
-    }
-    final ParseGeoPoint myPoint = geoPointFromLocation(myLoc);
-    // Create the map Parse query
-    ParseQuery<AnywallPost> mapQuery = AnywallPost.getQuery();
-    // Set up additional query filters
-    mapQuery.whereWithinKilometers("location", myPoint, MAX_POST_SEARCH_DISTANCE);
-    mapQuery.include("user");
-    mapQuery.orderByDescending("createdAt");
-    mapQuery.setLimit(MAX_POST_SEARCH_RESULTS);
-    // Kick off the query in the background
-    mapQuery.findInBackground(new FindCallback<AnywallPost>() {
-      @Override
-      public void done(List<AnywallPost> objects, ParseException e) {
-        if (e != null) {
-          if (Application.APPDEBUG) {
-            Log.d(Application.APPTAG, "An error occurred while querying for map posts.", e);
-          }
-          return;
-        }
-        /*
-         * Make sure we're processing results from
-         * the most recent update, in case there
-         * may be more than one in progress.
-         */
-        if (myUpdateNumber != mostRecentMapUpdate) {
-          return;
-        }
-        // Posts to show on the map
-        Set<String> toKeep = new HashSet<String>();
-        // Loop through the results of the search
-        for (AnywallPost post : objects) {
-          // Add this post to the list of map pins to keep
-          toKeep.add(post.getObjectId());
-          // Check for an existing marker for this post
-          Marker oldMarker = mapMarkers.get(post.getObjectId());
-          // Set up the map marker's location
-          MarkerOptions markerOpts =
-              new MarkerOptions().position(new LatLng(post.getLocation().getLatitude(), post
-                  .getLocation().getLongitude()));
-          // Set up the marker properties based on if it is within the search radius
-          if (post.getLocation().distanceInKilometersTo(myPoint) > radius * METERS_PER_FEET
-              / METERS_PER_KILOMETER) {
-            // Check for an existing out of range marker
-            if (oldMarker != null) {
-              if (oldMarker.getSnippet() == null) {
-                // Out of range marker already exists, skip adding it
-                continue;
-              } else {
-                // Marker now out of range, needs to be refreshed
-                oldMarker.remove();
-              }
-            }
-            // Display a red marker with a predefined title and no snippet
-            markerOpts =
-                markerOpts.title(getResources().getString(R.string.post_out_of_range)).icon(
-                    BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-          } else {
-            // Check for an existing in range marker
-            if (oldMarker != null) {
-              if (oldMarker.getSnippet() != null) {
-                // In range marker already exists, skip adding it
-                continue;
-              } else {
-                // Marker now in range, needs to be refreshed
-                oldMarker.remove();
-              }
-            }
-            // Display a green marker with the post information
-            markerOpts =
-                markerOpts.title(post.getText()).snippet(post.getUser().getUsername())
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-          }
-          // Add a new marker
-          Marker marker = mapFragment.getMap().addMarker(markerOpts);
-          mapMarkers.put(post.getObjectId(), marker);
-          if (post.getObjectId().equals(selectedPostObjectId)) {
-            marker.showInfoWindow();
-            selectedPostObjectId = null;
-          }
-        }
-        // Clean up old markers.
-        cleanUpMarkers(toKeep);
       }
     });
+
   }
+
 
   /*
    * Helper method to clean up old markers

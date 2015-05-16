@@ -13,21 +13,8 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Lugares:"
-            android:id="@+id/textView4"
-            android:layout_gravity="center_vertical" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/imageButton2"
-            android:src="@drawable/btn_radio_on_disabled_holo_light" />
+        android:layout_height="wrap_content"
+        android:id="@+id/llPlaces">
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -45,23 +32,18 @@
         android:layout_weight="1"
         android:layout_marginTop="16dp" />
 
-    <Button
-        android:id="@+id/post_button"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/post"
-        android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+        android:id="@+id/llStudents">
 
-    <ListView
-        android:layout_width="fill_parent"
-        android:layout_height="100dp"
-        android:id="@+id/student_listview"
-        android:layout_weight="1" />
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnAddStudent"
+            android:src="@drawable/create_contact" />
 
-    <ListView
-        android:id="@+id/posts_listview"
-        android:layout_width="fill_parent"
-        android:layout_height="100dp"
-        android:layout_weight="1" />
+    </LinearLayout>
 
 </LinearLayout>
