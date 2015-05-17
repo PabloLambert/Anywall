@@ -13,7 +13,7 @@ public class Application extends android.app.Application {
   // Debugging tag for the application
   public static final String APPTAG = "AnyWall";
 
-  // Used to pass location from MainActivity to PostActivity
+  // Used to pass location from MainActivity to StudentActivity
   public static final String INTENT_EXTRA_LOCATION = "location";
 
   // Key for saving the search distance preference

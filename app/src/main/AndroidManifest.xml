@@ -75,7 +75,7 @@
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Holo" />
         <activity
-            android:name=".PostActivity"
+            android:name=".StudentActivity"
             android:label="@string/activity_post_title"
             android:windowSoftInputMode="adjustResize" />
         <activity

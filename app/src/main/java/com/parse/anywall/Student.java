@@ -21,22 +21,6 @@ public class Student extends ParseObject {
         put("name", value);
     }
 
-    public String getSchool() {
-        return getString("school");
-    }
-
-    public void setSchool(String value) {
-        put("school", value);
-    }
-
-
-    public ParseGeoPoint getLocation() {
-        return getParseGeoPoint("location");
-    }
-
-    public void setLocation(ParseGeoPoint value) {
-        put("location", value);
-    }
 
     public static ParseQuery<Student> getQuery() {
         return ParseQuery.getQuery(Student.class);

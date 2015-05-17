@@ -136,6 +136,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
   public static Map<String, Places> mapPlaces = new HashMap<String, Places>();
+  public static Map<String, Student> mapStudent = new HashMap<String, Student>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -175,7 +176,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     btnAddStudent.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        Intent intent = new Intent(MainActivity.this, PostActivity.class);
+        Intent intent = new Intent(MainActivity.this, StudentActivity.class);
         startActivity(intent);
       }
     });
@@ -443,7 +444,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             tmpButton.setText(p.getName());
             mapPlaces.put(p.getObjectId(), p);
             tmpButton.setTag(p.getObjectId());
-            addAction(tmpButton);
+            addActionPlaces(tmpButton);
             llPlaces.addView(tmpButton, i);
           }
         }
@@ -451,7 +452,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     });
   }
 
-  private void addAction( Button btn) {
+  private void addActionPlaces(Button btn) {
 
     btn.setOnLongClickListener(new View.OnLongClickListener() {
       @Override
@@ -471,7 +472,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
         Places p = mapPlaces.get((String) view.getTag());
 
-        if ( mapMarkers2.get(p.getObjectId())  == null  ) {
+        if (mapMarkers2.get(p.getObjectId()) == null) {
 
           MarkerOptions markerOpts =
                   new MarkerOptions().position(new LatLng(p.getLocation().getLatitude(), p
@@ -506,6 +507,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
   private void doStudentQuery() {
 
     llStudents.removeViews(0, countStudents);
+    mapStudent.clear();
 
     ParseQuery<Student> query = ParseQuery.getQuery("Student");
     query.findInBackground(new FindCallback<Student>() {
@@ -520,12 +522,41 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             Button tmpButton = new Button(getApplicationContext());
             Student s = list.get(i);
             tmpButton.setText(s.getName());
-            llPlaces.addView(tmpButton, i);
+            mapStudent.put(s.getObjectId(), s);
+            tmpButton.setTag(s.getObjectId());
+            addActionStudents(tmpButton);
+            llStudents.addView(tmpButton, i);
           }
         }
       }
     });
 
+  }
+
+
+  private void addActionStudents(Button btn) {
+
+    btn.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View view) {
+        Intent intent = new Intent(MainActivity.this, StudentActivity.class);
+        intent.putExtra(StudentActivity.STUDENT_ACTION, StudentActivity.STUDENT_ACTION_MODIFY);
+        intent.putExtra(StudentActivity.STUDENT_OBJECT_ID, (String) view.getTag());
+        startActivity(intent);
+        return false;
+      }
+    });
+
+
+    btn.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+        Student s = mapStudent.get((String) view.getTag());
+        Toast.makeText(getApplicationContext(), s.getName(), Toast.LENGTH_SHORT).show();
+
+      }
+    });
   }
 
 

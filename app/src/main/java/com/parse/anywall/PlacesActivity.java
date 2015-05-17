@@ -35,8 +35,8 @@ import java.util.List;
 
 public class PlacesActivity extends FragmentActivity {
 
-    final static public String PLACES_ACTION = "ACTION";
-    final static public String PLACES_OBJECT_ID = "OBJECT";
+    final static public String PLACES_ACTION = "PLACES_ACTION";
+    final static public String PLACES_OBJECT_ID = "PLACES_OBJECT";
     final static public int PLACES_ACTION_CREATE = 1;
     final static public int PLACES_ACTION_MODIFY = 2;
 
