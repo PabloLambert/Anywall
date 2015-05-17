@@ -21,14 +21,9 @@ import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -39,10 +34,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap.CancelableCallback;
-import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -143,6 +135,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
   private int countPlaces = 0, countStudents = 0;
 
   private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
+  public static Map<String, Places> mapPlaces = new HashMap<String, Places>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -173,15 +166,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         Intent intent = new Intent(MainActivity.this, PlacesActivity.class);
         startActivity(intent);
 
-      }
-    });
-    btnAddPlace.setOnLongClickListener(new View.OnLongClickListener() {
-      @Override
-      public boolean onLongClick(View view) {
-        Intent intent = new Intent(MainActivity.this, PlacesActivity.class);
-        intent.putExtra("10", 20);
-        startActivity(intent);
-        return false;
       }
     });
 
@@ -442,6 +426,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
   private void doPlacesQuery() {
 
     llPlaces.removeViews(0, countPlaces);
+    mapPlaces.clear();
 
     ParseQuery<Places> query = ParseQuery.getQuery("Places");
     query.findInBackground(new FindCallback<Places>() {
@@ -456,7 +441,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             Button tmpButton = new Button(getApplicationContext());
             Places p = list.get(i);
             tmpButton.setText(p.getName());
-            tmpButton.setTag(p);
+            mapPlaces.put(p.getObjectId(), p);
+            tmpButton.setTag(p.getObjectId());
             addAction(tmpButton);
             llPlaces.addView(tmpButton, i);
           }
@@ -467,13 +453,23 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private void addAction( Button btn) {
 
+    btn.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View view) {
+        Intent intent = new Intent(MainActivity.this, PlacesActivity.class);
+        intent.putExtra(PlacesActivity.PLACES_ACTION, PlacesActivity.PLACES_ACTION_MODIFY);
+        intent.putExtra(PlacesActivity.PLACES_OBJECT_ID, (String) view.getTag());
+        startActivity(intent);
+        return false;
+      }
+    });
+
+
     btn.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
 
-
-        Places p = (Places) view.getTag();
-
+        Places p = mapPlaces.get((String) view.getTag());
 
         if ( mapMarkers2.get(p.getObjectId())  == null  ) {
 

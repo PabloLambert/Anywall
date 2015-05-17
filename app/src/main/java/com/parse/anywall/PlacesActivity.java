@@ -1,7 +1,7 @@
 package com.parse.anywall;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
@@ -22,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.parse.DeleteCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
@@ -34,11 +35,18 @@ import java.util.List;
 
 public class PlacesActivity extends FragmentActivity {
 
+    final static public String PLACES_ACTION = "ACTION";
+    final static public String PLACES_OBJECT_ID = "OBJECT";
+    final static public int PLACES_ACTION_CREATE = 1;
+    final static public int PLACES_ACTION_MODIFY = 2;
+
     EditText textPlaceName, textPlaceDirection;
-    Button btnAddPlace;
+    Button btnPlaceAction, btnPlaceDelete;
     ImageButton btnSearchDirection;
     GoogleMap googleMap;
     private ParseGeoPoint geoPoint;
+    int action;
+    Places p;
 
 
     @Override
@@ -48,8 +56,9 @@ public class PlacesActivity extends FragmentActivity {
 
         textPlaceName = (EditText) findViewById(R.id.textPlaceName);
         textPlaceDirection = (EditText) findViewById(R.id.textPlanceDirection);
-        btnAddPlace = (Button) findViewById(R.id.btnAddPlace);
+        btnPlaceAction = (Button) findViewById(R.id.btnPlaceAction);
         btnSearchDirection = (ImageButton) findViewById(R.id.btnSearchDirection);
+        btnPlaceDelete = (Button) findViewById(R.id.btnPlaceDelete);
 
 
         textPlaceName.addTextChangedListener(new TextWatcher() {
@@ -99,21 +108,46 @@ public class PlacesActivity extends FragmentActivity {
             }
         });
 
-        btnAddPlace.setEnabled(false);
-        btnAddPlace.setOnClickListener(new View.OnClickListener() {
+        btnPlaceAction.setEnabled(false);
+        btnPlaceAction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 saveData();
             }
         });
 
-
+        btnPlaceDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                deleteData();
+            }
+        });
 
         SupportMapFragment supportMapFragment = (SupportMapFragment)
                 getSupportFragmentManager().findFragmentById(R.id.map_places);
 
         // Getting a reference to the map
         googleMap = supportMapFragment.getMap();
+
+        Intent intent = getIntent();
+        action = intent.getIntExtra(PLACES_ACTION, PLACES_ACTION_CREATE);
+
+        if (action == PLACES_ACTION_CREATE ) {
+            btnPlaceAction.setText("Agregar");
+            btnPlaceDelete.setEnabled(false);
+        } else if (action == PLACES_ACTION_MODIFY ) {
+            btnPlaceAction.setText("Modificar");
+            btnPlaceDelete.setEnabled(true);
+            p = MainActivity.mapPlaces.get(intent.getStringExtra(PLACES_OBJECT_ID));
+            textPlaceName.setText(p.getName());
+            textPlaceDirection.setText(p.getDirection());
+            new GeocoderTask().execute(p.getDirection());
+
+        } else {
+            Toast.makeText(getApplicationContext(), "Action Error", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
     }
 
     public void updateButtonState() {
@@ -122,38 +156,63 @@ public class PlacesActivity extends FragmentActivity {
 
         boolean enabled = placeDirectionLength > 0 && placeNameLength > 0 && geoPoint != null;
 
-        btnAddPlace.setEnabled(enabled);
+        btnPlaceAction.setEnabled(enabled);
     }
 
     public void saveData() {
+
         String name = textPlaceName.getText().toString().trim();
         String direction = textPlaceDirection.getText().toString().trim();
+        Places places;
 
-        // Set up a progress dialog
+        if ( action == PLACES_ACTION_CREATE) {
+            // Create a post.
+            places = new Places();
+        } else if (action == PLACES_ACTION_MODIFY ) {
+            // Using existing place
+            places = p;
+        } else {
+            Toast.makeText(getApplicationContext(), "Error in saveData", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+            // Set up a progress dialog
+            final ProgressDialog dialog = new ProgressDialog(PlacesActivity.this);
+            dialog.setMessage("Guardando Lugar...");
+            dialog.show();
+
+            // Set the location to the current user's location
+            places.setName(name);
+            places.setDirection(direction);
+            places.setLocation(geoPoint);
+
+            ParseUser user = ParseUser.getCurrentUser();
+            places.setACL(new ParseACL(user));
+
+            // Save the Student
+            places.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(ParseException e) {
+                    dialog.dismiss();
+                    finish();
+                }
+            });
+
+
+    }
+
+    public void deleteData() {
         final ProgressDialog dialog = new ProgressDialog(PlacesActivity.this);
-        dialog.setMessage("Guardando Lugar...");
+        dialog.setMessage("Eliminando Lugar");
         dialog.show();
 
-        // Create a post.
-        Places p = new Places();
-
-        // Set the location to the current user's location
-        p.setName(name);
-        p.setDirection(direction);
-        p.setLocation(geoPoint);
-
-        ParseUser user = ParseUser.getCurrentUser();
-        p.setACL(new ParseACL(user));
-
-        // Save the Student
-        p.saveInBackground(new SaveCallback() {
+        p.deleteInBackground(new DeleteCallback() {
             @Override
             public void done(ParseException e) {
                 dialog.dismiss();
                 finish();
             }
         });
-
     }
 
     @Override
