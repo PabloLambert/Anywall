@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,11 +18,15 @@ import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.parse.DeleteCallback;
+import com.parse.GetCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
+import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+
+import java.util.ArrayList;
 
 /**
  * Activity which displays a login screen to the user, offering registration as well.
@@ -30,6 +35,7 @@ import com.parse.SaveCallback;
 
 public class StudentActivity extends FragmentActivity {
 
+  final static public String TAG = StudentActivity.class.getSimpleName();
   final static public String STUDENT_ACTION = "STUDENT_ACTION";
   final static public String STUDENT_OBJECT_ID = "STUDENT_OBJECT";
   final static public int STUDENT_ACTION_CREATE = 1;
@@ -37,6 +43,7 @@ public class StudentActivity extends FragmentActivity {
 
   EditText textStudentName;
   Button btnStudentAction, btnStudentDelete;
+  ImageButton btnStudentInfo;
   int action;
   Student student;
 
@@ -49,6 +56,7 @@ public class StudentActivity extends FragmentActivity {
     textStudentName = (EditText) findViewById(R.id.textStudentName);
     btnStudentAction = (Button) findViewById(R.id.btnStudentAction);
     btnStudentDelete = (Button) findViewById(R.id.btnStudentDelete);
+    btnStudentInfo = (ImageButton) findViewById(R.id.btnStudentInfo);
 
 
     textStudentName.addTextChangedListener(new TextWatcher() {
@@ -81,6 +89,23 @@ public class StudentActivity extends FragmentActivity {
       @Override
       public void onClick(View view) {
         deleteData();
+      }
+    });
+
+    btnStudentInfo.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        ArrayList<Travel> travels = (ArrayList<Travel>) student.get("travel");
+        Log.d(TAG, "travels size: " + travels.size());
+        for ( Travel t: travels) {
+          t.fetchIfNeededInBackground(new GetCallback<Travel>() {
+            @Override
+            public void done(Travel travel, ParseException e) {
+              Toast.makeText(getApplicationContext(), travel.getName(), Toast.LENGTH_SHORT).show();
+
+            }
+          });
+        }
       }
     });
 
@@ -135,6 +160,16 @@ public class StudentActivity extends FragmentActivity {
     dialog.show();
 
     s.setName(name);
+    ArrayList<Travel> travels = new ArrayList<Travel>();
+    Travel t1 = new Travel();
+    t1.setName("Desde la casa");
+    travels.add(t1);
+
+    Travel t2 = new Travel();
+    t2.setName("Desde el colegio");
+    travels.add(t2);
+
+    s.put("travel", travels);
 
     ParseUser user = ParseUser.getCurrentUser();
     s.setACL(new ParseACL(user));

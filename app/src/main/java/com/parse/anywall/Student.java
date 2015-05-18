@@ -21,7 +21,6 @@ public class Student extends ParseObject {
         put("name", value);
     }
 
-
     public static ParseQuery<Student> getQuery() {
         return ParseQuery.getQuery(Student.class);
     }
