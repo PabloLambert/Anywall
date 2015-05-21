@@ -12,7 +12,6 @@ import android.text.TextWatcher;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,8 +30,8 @@ import com.parse.SaveCallback;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Activity which displays a login screen to the user, offering registration as well.
@@ -47,16 +46,20 @@ public class StudentActivity extends FragmentActivity {
   final static public int STUDENT_ACTION_CREATE = 1;
   final static public int STUDENT_ACTION_MODIFY = 2;
   final static public Calendar c = Calendar.getInstance();
-  final static public int FROM_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
-  final static public int FROM_MINUTES = c.get(Calendar.MINUTE);
+  final static public int DEFAULT_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
+  final static public int DEFAULT_MINUTES = c.get(Calendar.MINUTE);
 
   EditText textStudentName;
-  TextView textFromDate;
   Button btnStudentAction, btnStudentDelete;
-  ImageButton btnStudentInfo, btnFromTimePicker;
-  Spinner spinnerFromTime;
-  int fromHourDay = FROM_HOUR_DAY, fromMinutes = FROM_MINUTES;
-  TimePickerFragment pickerFromTime;
+  ImageButton btnStudentInfo;
+
+  TextView textFromDate, textToDate;
+  Spinner spinnerFromTime, spinnerToTime;
+  TimePickerFragment pickerFromTime, pickerToTime;
+  ImageButton btnFromTimePicker, btnToTimePicker;
+  int fromHourDay = DEFAULT_HOUR_DAY, fromMinutes = DEFAULT_MINUTES;
+  int toHourDay = DEFAULT_HOUR_DAY, toMinutes = DEFAULT_MINUTES;
+
   int action;
   Student student;
 
@@ -70,9 +73,13 @@ public class StudentActivity extends FragmentActivity {
     btnStudentAction = (Button) findViewById(R.id.btnStudentAction);
     btnStudentDelete = (Button) findViewById(R.id.btnStudentDelete);
     btnStudentInfo = (ImageButton) findViewById(R.id.btnStudentInfo);
+
     spinnerFromTime = (Spinner) findViewById(R.id.spinnerFromPlace);
     textFromDate = (TextView) findViewById(R.id.textFromDate);
     btnFromTimePicker = (ImageButton) findViewById(R.id.btnFromTimePicker);
+    spinnerToTime = (Spinner) findViewById(R.id.spinnerToPlace);
+    textToDate = (TextView) findViewById(R.id.textToDate);
+    btnToTimePicker = (ImageButton) findViewById(R.id.btnToTimePicker);
 
 
     textStudentName.addTextChangedListener(new TextWatcher() {
@@ -99,17 +106,34 @@ public class StudentActivity extends FragmentActivity {
       stringList.add(_p.getName());
     }
 
-    ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, stringList);
-    spinnerFromTime.setAdapter(adapter);
+    ArrayAdapter<String> adapterFrom = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, stringList);
+    spinnerFromTime.setAdapter(adapterFrom);
 
-    textFromDate.setText(showTime(FROM_HOUR_DAY, FROM_MINUTES));
+    textFromDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
     btnFromTimePicker.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         if ( pickerFromTime == null) {
           pickerFromTime = new TimePickerFragment();
+          pickerFromTime.setType(pickerFromTime.FROM);
         }
-        pickerFromTime.show(getSupportFragmentManager(), "timePicker");
+        pickerFromTime.show(getSupportFragmentManager(), "timePickerFrom");
+      }
+    });
+
+    ArrayAdapter<String> adapterTo = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, stringList);
+    spinnerToTime.setAdapter(adapterTo);
+
+    textToDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
+    btnToTimePicker.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if ( pickerToTime == null) {
+          pickerToTime = new TimePickerFragment();
+          pickerToTime.setType(pickerFromTime.TO);
+
+        }
+        pickerToTime.show(getSupportFragmentManager(), "timePickerTo");
       }
     });
 
@@ -120,7 +144,6 @@ public class StudentActivity extends FragmentActivity {
         saveData();
       }
     });
-
     btnStudentDelete.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -131,13 +154,13 @@ public class StudentActivity extends FragmentActivity {
     btnStudentInfo.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        ArrayList<Travel> travels = (ArrayList<Travel>) student.get("travel");
+        final List<Travel> travels =  student.getTravels();
         Log.d(TAG, "travels size: " + travels.size());
         for ( Travel t: travels) {
           t.fetchIfNeededInBackground(new GetCallback<Travel>() {
             @Override
             public void done(Travel travel, ParseException e) {
-              Toast.makeText(getApplicationContext(), travel.getName(), Toast.LENGTH_SHORT).show();
+              Toast.makeText(getApplicationContext(), "From :" + travel.getFromPlace().getObjectId(), Toast.LENGTH_SHORT).show();
 
             }
           });
@@ -190,7 +213,7 @@ public class StudentActivity extends FragmentActivity {
     Student s;
 
     if ( action == STUDENT_ACTION_CREATE) {
-      // Create a post.
+      // Create a Student.
       s = new Student();
     } else if (action == STUDENT_ACTION_MODIFY) {
       // Using existing place
@@ -209,15 +232,20 @@ public class StudentActivity extends FragmentActivity {
     ParseACL acl = new ParseACL(user);
 
     s.setName(name);
-    ArrayList<Travel> travels = new ArrayList<Travel>();
-    Travel t1 = new Travel();
-    t1.setFromPlace(getPlaceFromMap(spinnerFromTime.getSelectedItem().toString()));
-    t1.setFromHourOfDay(fromHourDay);
-    t1.setFromMinutes(fromMinutes);
-    t1.setACL(acl);
-    travels.add(t1);
+    List<Travel> travels = new ArrayList<Travel>();
+    Travel tmpTravel = new Travel();
+    tmpTravel.setFromPlace(getPlaceFromMap(spinnerFromTime.getSelectedItem().toString()));
+    tmpTravel.setFromHourOfDay(fromHourDay);
+    tmpTravel.setFromMinutes(fromMinutes);
 
-    s.put("travel", travels);
+    tmpTravel.setToPlace(getPlaceFromMap(spinnerToTime.getSelectedItem().toString()));
+    tmpTravel.setToHourOfDay(toHourDay);
+    tmpTravel.setToMinutes(toMinutes);
+
+    tmpTravel.setACL(acl);
+    travels.add(tmpTravel);
+
+    s.setTravels(travels);
     s.setACL(acl);
     s.saveInBackground(new SaveCallback() {
       @Override
@@ -234,6 +262,11 @@ public class StudentActivity extends FragmentActivity {
     final ProgressDialog dialog = new ProgressDialog(StudentActivity.this);
     dialog.setMessage("Eliminando Estudiante");
     dialog.show();
+
+    List<Travel> travels = student.getTravels();
+    for (Travel tmpTravel: travels) {
+      tmpTravel.deleteInBackground();
+    }
 
     student.deleteInBackground(new DeleteCallback() {
       @Override
@@ -265,11 +298,17 @@ public class StudentActivity extends FragmentActivity {
   public class TimePickerFragment extends DialogFragment
           implements TimePickerDialog.OnTimeSetListener {
 
+    public final static int FROM = 0, TO = 1;
+    int type = FROM;
+
+    public void setType( int _type) {
+      type = _type;
+    }
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
       // Use the current time as the default values for the picker
-      int hour = FROM_HOUR_DAY;
-      int minute = FROM_MINUTES;
+      int hour = DEFAULT_HOUR_DAY;
+      int minute = DEFAULT_MINUTES;
 
       // Create a new instance of TimePickerDialog and return it
       return new TimePickerDialog(getActivity(), this, hour, minute,
@@ -279,10 +318,18 @@ public class StudentActivity extends FragmentActivity {
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
       // Do something with the time chosen by the user
 
-      // set current time into textview
-      textFromDate.setText(showTime(hourOfDay, minute));
-      fromHourDay = hourOfDay;
-      fromMinutes = minute;
+      if (type == FROM ) {
+        // set current time into textview
+        textFromDate.setText(showTime(hourOfDay, minute));
+        fromHourDay = hourOfDay;
+        fromMinutes = minute;
+      } else if ( type == TO ) {
+        textToDate.setText(showTime(hourOfDay, minute));
+        toHourDay = hourOfDay;
+        toMinutes = minute;
+      } else {
+        Log.e(TAG, "Error in type TimePicker");
+      }
 
     }
 

@@ -6,6 +6,8 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.util.List;
+
 
 /**
  * Data model for a Student.
@@ -20,6 +22,10 @@ public class Student extends ParseObject {
     public void setName(String value) {
         put("name", value);
     }
+
+    public List<Travel> getTravels() { return getList("travel");}
+
+    public void setTravels(List<Travel> value) { put("travel", value);}
 
     public static ParseQuery<Student> getQuery() {
         return ParseQuery.getQuery(Student.class);
