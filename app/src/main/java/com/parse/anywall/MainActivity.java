@@ -42,6 +42,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseQuery;
@@ -137,6 +138,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
   private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
   public static Map<String, Places> mapPlaces = new HashMap<String, Places>();
   public static Map<String, Student> mapStudent = new HashMap<String, Student>();
+  public static Map<String, Travel> mapTravels = new HashMap<String, Travel>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -526,6 +528,17 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             tmpButton.setTag(s.getObjectId());
             addActionStudents(tmpButton);
             llStudents.addView(tmpButton, i);
+
+            //Get Travels associated with Student
+            List<Travel> travels = s.getTravels();
+            for (Travel t : travels) {
+              t.fetchIfNeededInBackground(new GetCallback<Travel>() {
+                @Override
+                public void done(Travel travel, ParseException e) {
+                  mapTravels.put(travel.getObjectId(), travel);
+                }
+              });
+            }
           }
         }
       }

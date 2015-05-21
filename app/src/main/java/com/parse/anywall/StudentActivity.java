@@ -55,14 +55,14 @@ public class StudentActivity extends FragmentActivity {
 
   TextView textFromDate, textToDate;
   Spinner spinnerFromTime, spinnerToTime;
-  TimePickerFragment pickerFromTime, pickerToTime;
   ImageButton btnFromTimePicker, btnToTimePicker;
   int fromHourDay = DEFAULT_HOUR_DAY, fromMinutes = DEFAULT_MINUTES;
   int toHourDay = DEFAULT_HOUR_DAY, toMinutes = DEFAULT_MINUTES;
 
   int action;
   Student student;
-
+  Travel travel;
+  ArrayList<String> placesList;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -100,40 +100,50 @@ public class StudentActivity extends FragmentActivity {
       }
     });
 
-    ArrayList<String> stringList = new ArrayList<String>();
+    placesList = new ArrayList<String>();
     for (Iterator<Places> iterator = MainActivity.mapPlaces.values().iterator(); iterator.hasNext(); ){
       Places _p = iterator.next();
-      stringList.add(_p.getName());
+      placesList.add(_p.getName());
     }
 
-    ArrayAdapter<String> adapterFrom = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, stringList);
+    ArrayAdapter<String> adapterFrom = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, placesList);
     spinnerFromTime.setAdapter(adapterFrom);
 
     textFromDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
+    final TimePickerDialog timePickerFrom = new TimePickerDialog(StudentActivity.this, new TimePickerDialog.OnTimeSetListener() {
+      @Override
+      public void onTimeSet(TimePicker timePicker, int i, int i1) {
+        fromHourDay = i;
+        fromMinutes = i1;
+        textFromDate.setText(showTime(fromHourDay, fromMinutes));
+      }
+    },0,0,false);
+
     btnFromTimePicker.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if ( pickerFromTime == null) {
-          pickerFromTime = new TimePickerFragment();
-          pickerFromTime.setType(pickerFromTime.FROM);
-        }
-        pickerFromTime.show(getSupportFragmentManager(), "timePickerFrom");
+        timePickerFrom.updateTime(fromHourDay, fromMinutes);
+        timePickerFrom.show();
       }
     });
 
-    ArrayAdapter<String> adapterTo = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, stringList);
+    ArrayAdapter<String> adapterTo = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, placesList);
     spinnerToTime.setAdapter(adapterTo);
 
-    textToDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
+    textToDate.setText(showTime(toHourDay, toMinutes));
+    final TimePickerDialog timePickerTo = new TimePickerDialog(StudentActivity.this, new TimePickerDialog.OnTimeSetListener() {
+      @Override
+      public void onTimeSet(TimePicker timePicker, int i, int i1) {
+        toHourDay = i;
+        toMinutes = i1;
+        textToDate.setText(showTime(toHourDay, toMinutes));
+      }
+    },0,0,false);
     btnToTimePicker.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if ( pickerToTime == null) {
-          pickerToTime = new TimePickerFragment();
-          pickerToTime.setType(pickerFromTime.TO);
-
-        }
-        pickerToTime.show(getSupportFragmentManager(), "timePickerTo");
+        timePickerTo.updateTime(toHourDay, toMinutes);
+        timePickerTo.show();
       }
     });
 
@@ -181,6 +191,32 @@ public class StudentActivity extends FragmentActivity {
       student = MainActivity.mapStudent.get(intent.getStringExtra(STUDENT_OBJECT_ID));
 
       textStudentName.setText(student.getName());
+      List<Travel> travels = student.getTravels();
+      if (travels.size() > 0 ) {
+        travel = travels.get(0);
+        Places fromPlaces = MainActivity.mapPlaces.get(travel.getFromPlace().getObjectId());
+        Places toPlaces = MainActivity.mapPlaces.get(travel.getToPlace().getObjectId());
+
+        for (int i=0; i < placesList.size(); i++) {
+          if (placesList.get(i).compareTo(fromPlaces.getName()) == 0 )
+            spinnerFromTime.setSelection(i);
+
+          if (placesList.get(i).compareTo(toPlaces.getName()) == 0 )
+            spinnerToTime.setSelection(i);
+        }
+
+        fromHourDay = travel.getFromHourOfDay();
+        fromMinutes = travel.getFromMinutes();
+        textFromDate.setText(showTime(fromHourDay, fromMinutes));
+        toHourDay = travel.getToHourOfDay();
+        toMinutes = travel.getToMinutes();
+        textToDate.setText(showTime(toHourDay, toMinutes));
+
+      } else {
+        Log.e(TAG, "no travel asociated to student");
+      }
+
+
 
     } else {
       Toast.makeText(getApplicationContext(), "Action Error", Toast.LENGTH_SHORT).show();
@@ -211,13 +247,20 @@ public class StudentActivity extends FragmentActivity {
 
     String name = textStudentName.getText().toString().trim();
     Student s;
+    Travel tmpTravel;
 
     if ( action == STUDENT_ACTION_CREATE) {
       // Create a Student.
       s = new Student();
+      List<Travel> travels = new ArrayList<Travel>();
+      tmpTravel = new Travel();
+      travels.add(tmpTravel);
+      s.setTravels(travels);
+
     } else if (action == STUDENT_ACTION_MODIFY) {
       // Using existing place
       s = student;
+      tmpTravel = travel;
     } else {
       Toast.makeText(getApplicationContext(), "Error in saveData", Toast.LENGTH_SHORT).show();
       return;
@@ -232,8 +275,6 @@ public class StudentActivity extends FragmentActivity {
     ParseACL acl = new ParseACL(user);
 
     s.setName(name);
-    List<Travel> travels = new ArrayList<Travel>();
-    Travel tmpTravel = new Travel();
     tmpTravel.setFromPlace(getPlaceFromMap(spinnerFromTime.getSelectedItem().toString()));
     tmpTravel.setFromHourOfDay(fromHourDay);
     tmpTravel.setFromMinutes(fromMinutes);
@@ -243,9 +284,7 @@ public class StudentActivity extends FragmentActivity {
     tmpTravel.setToMinutes(toMinutes);
 
     tmpTravel.setACL(acl);
-    travels.add(tmpTravel);
 
-    s.setTravels(travels);
     s.setACL(acl);
     s.saveInBackground(new SaveCallback() {
       @Override
@@ -295,45 +334,6 @@ public class StudentActivity extends FragmentActivity {
     return sb.toString();
   }
 
-  public class TimePickerFragment extends DialogFragment
-          implements TimePickerDialog.OnTimeSetListener {
-
-    public final static int FROM = 0, TO = 1;
-    int type = FROM;
-
-    public void setType( int _type) {
-      type = _type;
-    }
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-      // Use the current time as the default values for the picker
-      int hour = DEFAULT_HOUR_DAY;
-      int minute = DEFAULT_MINUTES;
-
-      // Create a new instance of TimePickerDialog and return it
-      return new TimePickerDialog(getActivity(), this, hour, minute,
-              DateFormat.is24HourFormat(getActivity()));
-    }
-
-    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-      // Do something with the time chosen by the user
-
-      if (type == FROM ) {
-        // set current time into textview
-        textFromDate.setText(showTime(hourOfDay, minute));
-        fromHourDay = hourOfDay;
-        fromMinutes = minute;
-      } else if ( type == TO ) {
-        textToDate.setText(showTime(hourOfDay, minute));
-        toHourDay = hourOfDay;
-        toMinutes = minute;
-      } else {
-        Log.e(TAG, "Error in type TimePicker");
-      }
-
-    }
-
-  }
 
 }
 
