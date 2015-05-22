@@ -1,7 +1,10 @@
 package com.parse.anywall;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +27,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -133,6 +137,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private ImageButton btnAddPlace, btnAddStudent;
   private LinearLayout llPlaces, llStudents;
+  private TextView textStatus;
   private int countPlaces = 0, countStudents = 0;
 
   private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
@@ -184,6 +189,14 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     });
 
     llStudents = (LinearLayout) findViewById(R.id.llStudents);
+
+    textStatus = (TextView) findViewById(R.id.textStatus);
+    textStatus.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        updateStatus();
+      }
+    });
 
 
     // Set up the map fragment
@@ -573,6 +586,35 @@ public class MainActivity extends FragmentActivity implements LocationListener,
   }
 
 
+  private void updateStatus() {
+    Calendar now = Calendar.getInstance();
+
+    // Status => wait (5 min left); travelling => GPS; finished
+
+    for (Iterator<Student> iterator = mapStudent.values().iterator(); iterator.hasNext(); ) {
+      Student student = iterator.next();
+      List<Travel> travels = student.getTravels();
+      for (Travel tmpTravel : travels) {
+        Calendar beginTravel = Calendar.getInstance();
+        beginTravel.set(Calendar.HOUR_OF_DAY, tmpTravel.getFromHourOfDay());
+        beginTravel.set(Calendar.MINUTE, tmpTravel.getFromMinutes());
+
+        Calendar endTravel = Calendar.getInstance();
+        endTravel.set(Calendar.HOUR_OF_DAY, tmpTravel.getToHourOfDay());
+        endTravel.set(Calendar.MINUTE, tmpTravel.getToMinutes());
+
+        if (now.before(beginTravel)) {
+          long w = (beginTravel.getTimeInMillis() - now.getTimeInMillis()) / (1000*60);
+          textStatus.setText(student.getName() + " ...waiting for: " + w + " minutos");
+        } else if (now.after(endTravel)) {
+          textStatus.setText(student.getName() + " ...finalizado");
+        } else {
+          textStatus.setText(student.getName() + " en viaje");
+        }
+      }
+
+    }
+  }
   /*
    * Helper method to clean up old markers
    */
