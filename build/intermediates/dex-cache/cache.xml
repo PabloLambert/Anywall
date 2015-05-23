@@ -8,5 +8,12 @@
         sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67">
         <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/support-v4-19.1.0-30613b0763a3c48b638aebc3382fca4b072e169b.jar" />
     </item>
+    <item
+        jar="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/libs/Parse-1.6.0.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="2a812174191af5a4513a873602a765b0171f252c">
+        <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/Parse-1.6.0-74cc9843f56af2df6b35a43af70402ff21fa15ec.jar" />
+    </item>
 
 </items>

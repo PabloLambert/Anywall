@@ -3,4 +3,11 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_welcome">DriverApp</string>
+
+    <string name="slogan">Bienvenido!</string>
+    <string name="login">Ingresar</string>
+    <string name="signup">Registrarse</string>
+
 </resources>
