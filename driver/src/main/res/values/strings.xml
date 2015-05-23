@@ -12,4 +12,18 @@
     <string name="title_activity_login">LoginActivity</string>
     <string name="title_activity_sign_up">SignUpActivity</string>
 
+    <string name="prompt_username">Usuario</string>
+    <string name="prompt_password">Contraseña</string>
+    <string name="prompt_password_again">Repetir Contraseña</string>
+    <string name="error_intro">"Por favor "</string>
+    <string name="error_blank_username">Ingrese un Usuario</string>
+    <string name="error_blank_password">Ingrese una Contraseña</string>
+    <string name="error_mismatched_passwords">Ingresar contraseña dos veces</string>
+    <string name="error_join">", e "</string>
+    <string name="error_end">.</string>
+    <string name="progress_login">Ingresando...</string>
+    <string name="progress_signup">Registrando Usuario...</string>
+
+
+
 </resources>
