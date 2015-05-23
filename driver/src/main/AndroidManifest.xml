@@ -25,7 +25,15 @@
             android:name=".WelcomeActivity"
             android:label="@string/title_activity_welcome"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo"
+            android:theme="@android:style/Theme.Holo" >
+        </activity>
+        <activity
+            android:name=".LoginActivity"
+            android:label="@string/title_activity_login" >
+        </activity>
+        <activity
+            android:name=".SignUpActivity"
+            android:label="@string/title_activity_sign_up" >
         </activity>
     </application>
 

@@ -9,5 +9,7 @@
     <string name="slogan">Bienvenido!</string>
     <string name="login">Ingresar</string>
     <string name="signup">Registrarse</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_sign_up">SignUpActivity</string>
 
 </resources>
