@@ -13,7 +13,7 @@ public class Application extends android.app.Application {
   // Debugging tag for the application
   public static final String APPTAG = "AnyWall";
 
-  // Used to pass location from MainActivity to PostActivity
+  // Used to pass location from MainActivity to StudentActivity
   public static final String INTENT_EXTRA_LOCATION = "location";
 
   // Key for saving the search distance preference
@@ -34,6 +34,8 @@ public class Application extends android.app.Application {
 
     ParseObject.registerSubclass(AnywallPost.class);
     ParseObject.registerSubclass(Student.class);
+    ParseObject.registerSubclass(Places.class);
+    ParseObject.registerSubclass(Travel.class);
 
     Parse.initialize(this, "IU2UBVRnjfs8g65F1ixTOrFMnsUFDmSrptwjh9wq", "C0Ghf2UcrxJgWA9P8IxlRenltHnqiYOggFIzBnLn");
 

@@ -1,7 +1,10 @@
 package com.parse.anywall;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,11 +24,9 @@ import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,10 +38,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap.CancelableCallback;
-import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -48,6 +46,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseQuery;
@@ -57,6 +56,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     GooglePlayServicesClient.ConnectionCallbacks,
     GooglePlayServicesClient.OnConnectionFailedListener {
 
+  private final static String TAG = MainActivity.class.getSimpleName();
   /*
    * Define a request code to send to Google Play services This code is returned in
    * Activity.onActivityResult
@@ -133,6 +133,17 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   // Adapter for the Parse query
   private ParseQueryAdapter<AnywallPost> postsQueryAdapter;
+  private ParseQueryAdapter<Student> studentQueryAdapter;
+
+  private ImageButton btnAddPlace, btnAddStudent;
+  private LinearLayout llPlaces, llStudents;
+  private TextView textStatus;
+  private int countPlaces = 0, countStudents = 0;
+
+  private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
+  public static Map<String, Places> mapPlaces = new HashMap<String, Places>();
+  public static Map<String, Student> mapStudent = new HashMap<String, Student>();
+  public static Map<String, Travel> mapTravels = new HashMap<String, Travel>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -143,8 +154,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     // Create a new global location parameters object
     locationRequest = LocationRequest.create();
-
-    // Set the update interval
     locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
 
     // Use high accuracy
@@ -156,104 +165,45 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Create a new location client, using the enclosing class to handle callbacks.
     locationClient = new LocationClient(this, this, this);
 
-    // Set up a customized query
-    ParseQueryAdapter.QueryFactory<AnywallPost> factory =
-        new ParseQueryAdapter.QueryFactory<AnywallPost>() {
-          public ParseQuery<AnywallPost> create() {
-            Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-            ParseQuery<AnywallPost> query = AnywallPost.getQuery();
-            query.include("user");
-            query.orderByDescending("createdAt");
-            query.whereWithinKilometers("location", geoPointFromLocation(myLoc), radius
-                * METERS_PER_FEET / METERS_PER_KILOMETER);
-            query.setLimit(MAX_POST_SEARCH_RESULTS);
-            return query;
-          }
-        };
 
-    // Set up the query adapter
-    postsQueryAdapter = new ParseQueryAdapter<AnywallPost>(this, factory) {
+    btnAddPlace = (ImageButton) findViewById(R.id.btnAddPlace);
+    btnAddPlace.setOnClickListener(new OnClickListener() {
       @Override
-      public View getItemView(AnywallPost post, View view, ViewGroup parent) {
-        if (view == null) {
-          view = View.inflate(getContext(), R.layout.anywall_post_item, null);
-        }
-        TextView contentView = (TextView) view.findViewById(R.id.content_view);
-        TextView usernameView = (TextView) view.findViewById(R.id.username_view);
-        contentView.setText(post.getText());
-        usernameView.setText(post.getUser().getUsername());
-        return view;
-      }
+      public void onClick(View view) {
 
-    };
+        Intent intent = new Intent(MainActivity.this, PlacesActivity.class);
+        startActivity(intent);
 
-    // Disable automatic loading when the adapter is attached to a view.
-    postsQueryAdapter.setAutoload(false);
-
-    // Disable pagination, we'll manage the query limit ourselves
-    postsQueryAdapter.setPaginationEnabled(false);
-
-    // Attach the query adapter to the view
-    ListView postsListView = (ListView) findViewById(R.id.posts_listview);
-    postsListView.setAdapter(postsQueryAdapter);
-
-    // Set up the handler for an item's selection
-    postsListView.setOnItemClickListener(new OnItemClickListener() {
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        final AnywallPost item = postsQueryAdapter.getItem(position);
-        selectedPostObjectId = item.getObjectId();
-        mapFragment.getMap().animateCamera(
-            CameraUpdateFactory.newLatLng(new LatLng(item.getLocation().getLatitude(), item
-                .getLocation().getLongitude())), new CancelableCallback() {
-              public void onFinish() {
-                Marker marker = mapMarkers.get(item.getObjectId());
-                if (marker != null) {
-                  marker.showInfoWindow();
-                }
-              }
-
-              public void onCancel() {
-              }
-            });
-        Marker marker = mapMarkers.get(item.getObjectId());
-        if (marker != null) {
-          marker.showInfoWindow();
-        }
       }
     });
+
+    llPlaces = (LinearLayout) findViewById(R.id.llPlaces);
+
+    btnAddStudent = (ImageButton) findViewById(R.id.btnAddStudent);
+    btnAddStudent.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent intent = new Intent(MainActivity.this, StudentActivity.class);
+        startActivity(intent);
+      }
+    });
+
+    llStudents = (LinearLayout) findViewById(R.id.llStudents);
+
+    textStatus = (TextView) findViewById(R.id.textStatus);
+    textStatus.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        updateStatus();
+      }
+    });
+
 
     // Set up the map fragment
     mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
     // Enable the current location "blue dot"
     mapFragment.getMap().setMyLocationEnabled(true);
     // Set up the camera change handler
-    mapFragment.getMap().setOnCameraChangeListener(new OnCameraChangeListener() {
-      public void onCameraChange(CameraPosition position) {
-        // When the camera changes, update the query
-        doMapQuery();
-      }
-    });
-
-    // Set up the handler for the post button click
-    Button postButton = (Button) findViewById(R.id.post_button);
-    postButton.setOnClickListener(new OnClickListener() {
-      public void onClick(View v) {
-
-
-        // Only allow posts if we have a location
-        Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-
-        if (myLoc == null) {
-          Toast.makeText(MainActivity.this,
-              "Please try again after your location appears on the map.", Toast.LENGTH_LONG).show();
-          //return;
-        }
-
-        Intent intent = new Intent(MainActivity.this, PostActivity.class);
-        intent.putExtra(Application.INTENT_EXTRA_LOCATION, myLoc);
-        startActivity(intent);
-      }
-    });
   }
 
   /*
@@ -308,8 +258,12 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Save the current radius
     lastRadius = radius;
     // Query for the latest data to update the views.
-    doMapQuery();
-    doListQuery();
+
+    mapFragment.getMap().clear();
+    mapMarkers2.clear();
+
+    doPlacesQuery();
+    doStudentQuery();
   }
 
   /*
@@ -453,8 +407,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     }
     // Update map radius indicator
     updateCircle(myLatLng);
-    doMapQuery();
-    doListQuery();
+
   }
 
   /*
@@ -484,115 +437,184 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     }
   }
 
-  /*
-   * Set up a query to update the list view
-   */
-  private void doListQuery() {
-    Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-    // If location info is available, load the data
-    if (myLoc != null) {
-      // Refreshes the list view with new data based
-      // usually on updated location data.
-      postsQueryAdapter.loadObjects();
-    }
-  }
 
-  /*
-   * Set up the query to update the map view
-   */
-  private void doMapQuery() {
-    final int myUpdateNumber = ++mostRecentMapUpdate;
-    Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-    // If location info isn't available, clean up any existing markers
-    if (myLoc == null) {
-      cleanUpMarkers(new HashSet<String>());
-      return;
-    }
-    final ParseGeoPoint myPoint = geoPointFromLocation(myLoc);
-    // Create the map Parse query
-    ParseQuery<AnywallPost> mapQuery = AnywallPost.getQuery();
-    // Set up additional query filters
-    mapQuery.whereWithinKilometers("location", myPoint, MAX_POST_SEARCH_DISTANCE);
-    mapQuery.include("user");
-    mapQuery.orderByDescending("createdAt");
-    mapQuery.setLimit(MAX_POST_SEARCH_RESULTS);
-    // Kick off the query in the background
-    mapQuery.findInBackground(new FindCallback<AnywallPost>() {
+
+  private void doPlacesQuery() {
+
+    llPlaces.removeViews(0, countPlaces);
+    mapPlaces.clear();
+
+    ParseQuery<Places> query = ParseQuery.getQuery("Places");
+    query.findInBackground(new FindCallback<Places>() {
       @Override
-      public void done(List<AnywallPost> objects, ParseException e) {
+      public void done(List<Places> list, ParseException e) {
         if (e != null) {
-          if (Application.APPDEBUG) {
-            Log.d(Application.APPTAG, "An error occurred while querying for map posts.", e);
-          }
-          return;
-        }
-        /*
-         * Make sure we're processing results from
-         * the most recent update, in case there
-         * may be more than one in progress.
-         */
-        if (myUpdateNumber != mostRecentMapUpdate) {
-          return;
-        }
-        // Posts to show on the map
-        Set<String> toKeep = new HashSet<String>();
-        // Loop through the results of the search
-        for (AnywallPost post : objects) {
-          // Add this post to the list of map pins to keep
-          toKeep.add(post.getObjectId());
-          // Check for an existing marker for this post
-          Marker oldMarker = mapMarkers.get(post.getObjectId());
-          // Set up the map marker's location
-          MarkerOptions markerOpts =
-              new MarkerOptions().position(new LatLng(post.getLocation().getLatitude(), post
-                  .getLocation().getLongitude()));
-          // Set up the marker properties based on if it is within the search radius
-          if (post.getLocation().distanceInKilometersTo(myPoint) > radius * METERS_PER_FEET
-              / METERS_PER_KILOMETER) {
-            // Check for an existing out of range marker
-            if (oldMarker != null) {
-              if (oldMarker.getSnippet() == null) {
-                // Out of range marker already exists, skip adding it
-                continue;
-              } else {
-                // Marker now out of range, needs to be refreshed
-                oldMarker.remove();
-              }
-            }
-            // Display a red marker with a predefined title and no snippet
-            markerOpts =
-                markerOpts.title(getResources().getString(R.string.post_out_of_range)).icon(
-                    BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-          } else {
-            // Check for an existing in range marker
-            if (oldMarker != null) {
-              if (oldMarker.getSnippet() != null) {
-                // In range marker already exists, skip adding it
-                continue;
-              } else {
-                // Marker now in range, needs to be refreshed
-                oldMarker.remove();
-              }
-            }
-            // Display a green marker with the post information
-            markerOpts =
-                markerOpts.title(post.getText()).snippet(post.getUser().getUsername())
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-          }
-          // Add a new marker
-          Marker marker = mapFragment.getMap().addMarker(markerOpts);
-          mapMarkers.put(post.getObjectId(), marker);
-          if (post.getObjectId().equals(selectedPostObjectId)) {
-            marker.showInfoWindow();
-            selectedPostObjectId = null;
+          Toast.makeText(getApplicationContext(), "Error en obtener lugares", Toast.LENGTH_SHORT).show();
+        } else {
+
+          countPlaces = list.size();
+          for (int i = 0; i < countPlaces; i++) {
+            Button tmpButton = new Button(getApplicationContext());
+            Places p = list.get(i);
+            tmpButton.setText(p.getName());
+            mapPlaces.put(p.getObjectId(), p);
+            tmpButton.setTag(p.getObjectId());
+            addActionPlaces(tmpButton);
+            llPlaces.addView(tmpButton, i);
           }
         }
-        // Clean up old markers.
-        cleanUpMarkers(toKeep);
       }
     });
   }
 
+  private void addActionPlaces(Button btn) {
+
+    btn.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View view) {
+        Intent intent = new Intent(MainActivity.this, PlacesActivity.class);
+        intent.putExtra(PlacesActivity.PLACES_ACTION, PlacesActivity.PLACES_ACTION_MODIFY);
+        intent.putExtra(PlacesActivity.PLACES_OBJECT_ID, (String) view.getTag());
+        startActivity(intent);
+        return false;
+      }
+    });
+
+
+    btn.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+        Places p = mapPlaces.get((String) view.getTag());
+
+        if (mapMarkers2.get(p.getObjectId()) == null) {
+
+          MarkerOptions markerOpts =
+                  new MarkerOptions().position(new LatLng(p.getLocation().getLatitude(), p
+                          .getLocation().getLongitude()));
+          Marker marker = mapFragment.getMap().addMarker(markerOpts);
+
+          mapMarkers2.put(p.getObjectId(), marker);
+
+        }
+
+        mapFragment.getMap().animateCamera(
+                CameraUpdateFactory.newLatLng(new LatLng(
+                        p.getLocation().getLatitude(),
+                        p.getLocation().getLongitude())), new CancelableCallback() {
+                  @Override
+                  public void onFinish() {
+
+                  }
+
+                  @Override
+                  public void onCancel() {
+
+                  }
+                }
+
+        );
+      }
+    });
+  }
+
+
+  private void doStudentQuery() {
+
+    llStudents.removeViews(0, countStudents);
+    mapStudent.clear();
+
+    ParseQuery<Student> query = ParseQuery.getQuery("Student");
+    query.findInBackground(new FindCallback<Student>() {
+      @Override
+      public void done(List<Student> list, ParseException e) {
+        if (e != null) {
+          Toast.makeText(getApplicationContext(), "Error en obtener estudiantes", Toast.LENGTH_SHORT).show();
+        } else {
+
+          countStudents = list.size();
+          for (int i = 0; i < countStudents; i++) {
+            Button tmpButton = new Button(getApplicationContext());
+            Student s = list.get(i);
+            tmpButton.setText(s.getName());
+            mapStudent.put(s.getObjectId(), s);
+            tmpButton.setTag(s.getObjectId());
+            addActionStudents(tmpButton);
+            llStudents.addView(tmpButton, i);
+
+            //Get Travels associated with Student
+            List<Travel> travels = s.getTravels();
+            for (Travel t : travels) {
+              t.fetchIfNeededInBackground(new GetCallback<Travel>() {
+                @Override
+                public void done(Travel travel, ParseException e) {
+                  mapTravels.put(travel.getObjectId(), travel);
+                }
+              });
+            }
+          }
+        }
+      }
+    });
+
+  }
+
+
+  private void addActionStudents(Button btn) {
+
+    btn.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View view) {
+        Intent intent = new Intent(MainActivity.this, StudentActivity.class);
+        intent.putExtra(StudentActivity.STUDENT_ACTION, StudentActivity.STUDENT_ACTION_MODIFY);
+        intent.putExtra(StudentActivity.STUDENT_OBJECT_ID, (String) view.getTag());
+        startActivity(intent);
+        return false;
+      }
+    });
+
+
+    btn.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+        Student s = mapStudent.get((String) view.getTag());
+        Toast.makeText(getApplicationContext(), s.getName(), Toast.LENGTH_SHORT).show();
+
+      }
+    });
+  }
+
+
+  private void updateStatus() {
+    Calendar now = Calendar.getInstance();
+
+    // Status => wait (5 min left); travelling => GPS; finished
+
+    for (Iterator<Student> iterator = mapStudent.values().iterator(); iterator.hasNext(); ) {
+      Student student = iterator.next();
+      List<Travel> travels = student.getTravels();
+      for (Travel tmpTravel : travels) {
+        Calendar beginTravel = Calendar.getInstance();
+        beginTravel.set(Calendar.HOUR_OF_DAY, tmpTravel.getFromHourOfDay());
+        beginTravel.set(Calendar.MINUTE, tmpTravel.getFromMinutes());
+
+        Calendar endTravel = Calendar.getInstance();
+        endTravel.set(Calendar.HOUR_OF_DAY, tmpTravel.getToHourOfDay());
+        endTravel.set(Calendar.MINUTE, tmpTravel.getToMinutes());
+
+        if (now.before(beginTravel)) {
+          long w = (beginTravel.getTimeInMillis() - now.getTimeInMillis()) / (1000*60);
+          textStatus.setText(student.getName() + " ...waiting for: " + w + " minutos");
+        } else if (now.after(endTravel)) {
+          textStatus.setText(student.getName() + " ...finalizado");
+        } else {
+          textStatus.setText(student.getName() + " en viaje");
+        }
+      }
+
+    }
+  }
   /*
    * Helper method to clean up old markers
    */
