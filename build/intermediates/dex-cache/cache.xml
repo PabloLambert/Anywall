@@ -2,11 +2,25 @@
 <items version="2" >
 
     <item
-        jar="/Users/InnovaTI/Library/Android/sdk/extras/android/m2repository/com/android/support/support-v4/19.1.0/support-v4-19.1.0.jar"
+        jar="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/exploded-aar/com.google.android.gms/play-services/6.1.71/classes.jar"
         jumboMode="false"
         revision="21.1.2"
-        sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67">
-        <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/support-v4-19.1.0-30613b0763a3c48b638aebc3382fca4b072e169b.jar" />
+        sha1="0f6d5c1ef2e982c3b7858408e3df389cf5d202da">
+        <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/classes-62ed583a38507a729127b794d39582ed2d70157d.jar" />
+    </item>
+    <item
+        jar="/Users/InnovaTI/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/20.0.0/support-annotations-20.0.0.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="9d9013e9ff35fc3756411e62873c363c70c638fa">
+        <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/support-annotations-20.0.0-3d5277584cc4f3f5d175bee49e9cfe38f7bd74a5.jar" />
+    </item>
+    <item
+        jar="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/exploded-aar/com.android.support/support-v4/20.0.0/libs/internal_impl-20.0.0.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="e40b3078e3fbd353c9f44da8df25a8fc0078209d">
+        <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/internal_impl-20.0.0-407a5d4fff2693a317c729b8d4db9a129b9ed2f5.jar" />
     </item>
     <item
         jar="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/libs/Parse-1.6.0.jar"
@@ -14,6 +28,13 @@
         revision="21.1.2"
         sha1="2a812174191af5a4513a873602a765b0171f252c">
         <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/Parse-1.6.0-74cc9843f56af2df6b35a43af70402ff21fa15ec.jar" />
+    </item>
+    <item
+        jar="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/exploded-aar/com.android.support/support-v4/20.0.0/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="8694693636ab36910c8100ce527c258ff3ebece0">
+        <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/classes-ed196ede856412caaae1441e21c67b63ef006051.jar" />
     </item>
 
 </items>
