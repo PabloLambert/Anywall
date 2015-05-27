@@ -8,6 +8,10 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -23,6 +27,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.parse.ParseGeoPoint;
+import com.parse.PushService;
+import com.pubnub.api.Callback;
+import com.pubnub.api.Pubnub;
+import com.pubnub.api.PubnubError;
+import com.pubnub.api.PubnubException;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +58,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     private static final int MILLISECONDS_PER_SECOND = 1000;
 
     // The update interval
-    private static final int UPDATE_INTERVAL_IN_SECONDS = 5;
+    private static final int UPDATE_INTERVAL_IN_SECONDS = 30;
 
     // A fast interval ceiling
     private static final int FAST_CEILING_IN_SECONDS = 1;
@@ -107,6 +119,12 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Stores the current instantiation of the location client in this object
     private LocationClient locationClient;
 
+    private Button btnStart, btnStop, btnCount;
+    private TextView txtDisplay;
+    private int count = 0;
+    Pubnub pubnub;
+    JSONObject obj;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -134,11 +152,79 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         mapFragment.getMap().setMyLocationEnabled(true);
         // Set up the camera change handler
 
+        btnStart = (Button) findViewById(R.id.btnStart);
+        btnStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                locationClient.connect();
+
+                /* Publish a simple message to the demo_tutorial channel */
+                JSONObject data = new JSONObject();
+
+                try {
+                    data.put("color", "blue");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                pubnub.publish("demo_tutorial", data, new Callback() {
+                });
+
+            }
+        });
+
+        btnStop = (Button) findViewById(R.id.btnStop);
+        btnStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (locationClient.isConnected()) {
+                    stopPeriodicUpdates();
+                }
+
+                // After disconnect() is called, the client is considered "dead".
+                locationClient.disconnect();
+            }
+        });
+
+        txtDisplay = (TextView)findViewById(R.id.txtDisplay);
+
+        btnCount = (Button) findViewById(R.id.btnCount);
+        btnCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    txtDisplay.setText("obj color = " + obj.get("color"));
+
+                } catch ( Exception e) {
+                    Log.e(TAG, "error");
+                }
+            }
+        });
+
+        pubnub = new Pubnub("pub-c-940b2922-b731-40c0-b37e-dd665be2d8b7", "sub-c-c83accce-0417-11e5-a37b-02ee2ddab7fe");
+        try {
+            pubnub.subscribe("demo_tutorial", new Callback() {
+                public void successCallback(String channel, Object message) {
+                    System.out.println(message);
+                    obj = (JSONObject) message;
+                }
+
+                public void errorCallback(String channel, PubnubError error) {
+                    System.out.println(error.getErrorString());
+                }
+            });
+        } catch (PubnubException e) {
+            e.printStackTrace();
+        }
+
+
     }
+
 
     /*
   * Called when the Activity is no longer visible at all. Stop updates and disconnect.
   */
+
     @Override
     public void onStop() {
         // If the client is connected
@@ -152,9 +238,11 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         super.onStop();
     }
 
+
     /*
      * Called when the Activity is restarted, even before it becomes visible.
      */
+
     @Override
     public void onStart() {
         super.onStart();
@@ -162,6 +250,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         // Connect to the location services client
         locationClient.connect();
     }
+
 
     /*
      * Called when the Activity is resumed. Updates the view.
@@ -380,7 +469,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     @Override
     public void onConnected(Bundle bundle) {
-            Log.d("Connected to location services", TAG);
+        Log.d("Connected to location services", TAG);
         currentLocation = getLocation();
         startPeriodicUpdates();
     }
@@ -394,6 +483,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     @Override
     public void onLocationChanged(Location location) {
         currentLocation = location;
+        count++;
         if (lastLocation != null
                 && geoPointFromLocation(location)
                 .distanceInKilometersTo(geoPointFromLocation(lastLocation)) < 0.01) {
