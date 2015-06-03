@@ -26,7 +26,13 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.parse.FindCallback;
+import com.parse.Parse;
+import com.parse.ParseACL;
+import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 import com.parse.PushService;
 import com.pubnub.api.Callback;
 import com.pubnub.api.Pubnub;
@@ -35,8 +41,10 @@ import com.pubnub.api.PubnubException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -119,11 +127,13 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Stores the current instantiation of the location client in this object
     private LocationClient locationClient;
 
-    private Button btnStart, btnStop, btnCount;
-    private TextView txtDisplay;
+    private Button btnStart, btnStop, btnCount, btnSubscribre;
+    private TextView txtDisplay, txtChannel;
     private int count = 0;
     Pubnub pubnub = Application.pubnub;
     JSONObject obj;
+
+    DriverDetail driverDetail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,6 +162,45 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         mapFragment.getMap().setMyLocationEnabled(true);
         // Set up the camera change handler
 
+
+        ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
+
+        query.findInBackground(new FindCallback<DriverDetail>() {
+            @Override
+            public void done(List<DriverDetail> list, ParseException e) {
+                if (e != null ) {
+
+                        Toast.makeText(getApplicationContext(), "Error en obtener DriverDetail" + e.toString(), Toast.LENGTH_SHORT).show();
+
+                } else {
+                    if ( list.size() > 0 ) {
+                        driverDetail = list.get(1);
+
+                    } else {
+                        driverDetail = new DriverDetail();
+                        ParseUser user = ParseUser.getCurrentUser();
+                        ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
+                        driverDetail.setChannel(user.getSessionToken());
+                        driverDetail.setACL(acl);
+                        driverDetail.saveInBackground();
+                    }
+
+                }
+            }
+        });
+
+        txtChannel = (TextView) findViewById(R.id.txtChannel);
+        txtChannel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (driverDetail != null ) {
+                    txtChannel.setText("Channel: " + driverDetail.getChannel());
+                } else {
+                    txtChannel.setText("Channel: ");
+                }
+            }
+        });
+
         btnStart = (Button) findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,7 +216,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                     e.printStackTrace();
                 }
 
-                pubnub.publish("demo_tutorial", data, new Callback() {
+                pubnub.publish(driverDetail.getChannel(), data, new Callback() {
                 });
 
             }
@@ -201,20 +250,30 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             }
         });
 
-        try {
-            pubnub.subscribe("demo_tutorial", new Callback() {
-                public void successCallback(String channel, Object message) {
-                    System.out.println(message);
-                    obj = (JSONObject) message;
+        btnSubscribre = (Button) findViewById(R.id.btnSubscribe);
+        btnSubscribre.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                try {
+                    pubnub.subscribe(driverDetail.getChannel(), new Callback() {
+                        public void successCallback(String channel, Object message) {
+                            System.out.println(message);
+                            obj = (JSONObject) message;
+                        }
+
+                        public void errorCallback(String channel, PubnubError error) {
+                            System.out.println(error.getErrorString());
+                        }
+                    });
+                } catch (PubnubException e) {
+                    e.printStackTrace();
                 }
 
-                public void errorCallback(String channel, PubnubError error) {
-                    System.out.println(error.getErrorString());
-                }
-            });
-        } catch (PubnubException e) {
-            e.printStackTrace();
-        }
+            }
+        });
+
+
 
 
     }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.parse.Parse;
+import com.parse.ParseObject;
 import com.pubnub.api.Pubnub;
 
 /**
@@ -22,6 +23,8 @@ public class Application extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        ParseObject.registerSubclass(DriverDetail.class);
 
         Parse.initialize(this, "IU2UBVRnjfs8g65F1ixTOrFMnsUFDmSrptwjh9wq", "C0Ghf2UcrxJgWA9P8IxlRenltHnqiYOggFIzBnLn");
 

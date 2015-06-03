@@ -28,6 +28,19 @@
             android:id="@+id/txtDisplay" />
     </LinearLayout>
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Channel:"
+            android:id="@+id/txtChannel" />
+    </LinearLayout>
+
     <fragment
         android:id="@+id/map_fragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -43,6 +56,12 @@
         android:layout_gravity="center_vertical"
         android:layout_weight="1"
         android:weightSum="1">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Subscribe"
+            android:id="@+id/btnSubscribe" />
 
         <Button
             android:layout_width="wrap_content"
