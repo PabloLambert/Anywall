@@ -122,7 +122,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     private Button btnStart, btnStop, btnCount;
     private TextView txtDisplay;
     private int count = 0;
-    Pubnub pubnub;
+    Pubnub pubnub = Application.pubnub;
     JSONObject obj;
 
     @Override
@@ -201,7 +201,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             }
         });
 
-        pubnub = new Pubnub("pub-c-940b2922-b731-40c0-b37e-dd665be2d8b7", "sub-c-c83accce-0417-11e5-a37b-02ee2ddab7fe");
         try {
             pubnub.subscribe("demo_tutorial", new Callback() {
                 public void successCallback(String channel, Object message) {
