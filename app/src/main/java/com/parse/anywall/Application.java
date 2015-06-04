@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import com.parse.Parse;
 import com.parse.ParseObject;
+import com.pubnub.api.Pubnub;
 
 public class Application extends android.app.Application {
   // Debugging switch
@@ -25,6 +26,9 @@ public class Application extends android.app.Application {
 
   private static ConfigHelper configHelper;
 
+  public static Pubnub pubnub;
+
+
   public Application() {
   }
 
@@ -43,6 +47,9 @@ public class Application extends android.app.Application {
 
     configHelper = new ConfigHelper();
     configHelper.fetchConfigIfNeeded();
+
+    pubnub = new Pubnub("pub-c-940b2922-b731-40c0-b37e-dd665be2d8b7", "sub-c-c83accce-0417-11e5-a37b-02ee2ddab7fe");
+
   }
 
   public static float getSearchDistance() {

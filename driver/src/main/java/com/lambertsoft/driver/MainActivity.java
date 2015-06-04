@@ -127,7 +127,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Stores the current instantiation of the location client in this object
     private LocationClient locationClient;
 
-    private Button btnStart, btnStop, btnCount, btnSubscribre;
+    private Button btnStart, btnStop, btnCount;
     private TextView txtDisplay, txtChannel;
     private int count = 0;
     Pubnub pubnub = Application.pubnub;
@@ -164,7 +164,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
 
         ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
-
         query.findInBackground(new FindCallback<DriverDetail>() {
             @Override
             public void done(List<DriverDetail> list, ParseException e) {
@@ -207,18 +206,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             public void onClick(View view) {
                 locationClient.connect();
 
-                /* Publish a simple message to the demo_tutorial channel */
-                JSONObject data = new JSONObject();
-
-                try {
-                    data.put("color", "blue");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                pubnub.publish(driverDetail.getChannel(), data, new Callback() {
-                });
-
             }
         });
 
@@ -242,39 +229,14 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             @Override
             public void onClick(View view) {
                 try {
-                    txtDisplay.setText("obj color = " + obj.get("color"));
+                    if (currentLocation != null )
+                     txtDisplay.setText("CurrentLocation = " + currentLocation.toString());
 
                 } catch ( Exception e) {
                     Log.e(TAG, "error");
                 }
             }
         });
-
-        btnSubscribre = (Button) findViewById(R.id.btnSubscribe);
-        btnSubscribre.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                try {
-                    pubnub.subscribe(driverDetail.getChannel(), new Callback() {
-                        public void successCallback(String channel, Object message) {
-                            System.out.println(message);
-                            obj = (JSONObject) message;
-                        }
-
-                        public void errorCallback(String channel, PubnubError error) {
-                            System.out.println(error.getErrorString());
-                        }
-                    });
-                } catch (PubnubException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-
-
-
 
     }
 
@@ -542,6 +504,20 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     public void onLocationChanged(Location location) {
         currentLocation = location;
         count++;
+
+        /* Publish a simple message to the channel */
+        JSONObject message = new JSONObject();
+        try {
+            message.put("lat", location.getLatitude());
+            message.put("lng", location.getLongitude());
+            message.put("alt", location.getAltitude());
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+        }
+
+        pubnub.publish(driverDetail.getChannel(), message, new Callback() {
+        });
+
         if (lastLocation != null
                 && geoPointFromLocation(location)
                 .distanceInKilometersTo(geoPointFromLocation(lastLocation)) < 0.01) {

@@ -51,6 +51,13 @@ import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseQuery;
 import com.parse.ParseQueryAdapter;
+import com.pubnub.api.Callback;
+import com.pubnub.api.Pubnub;
+import com.pubnub.api.PubnubError;
+import com.pubnub.api.PubnubException;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends FragmentActivity implements LocationListener,
     GooglePlayServicesClient.ConnectionCallbacks,
@@ -137,13 +144,16 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private ImageButton btnAddPlace, btnAddStudent;
   private LinearLayout llPlaces, llStudents;
-  private TextView textStatus;
+  private TextView textStatus, txtChannel;
+  private Button btnSubscribe;
   private int countPlaces = 0, countStudents = 0;
 
   private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
   public static Map<String, Places> mapPlaces = new HashMap<String, Places>();
   public static Map<String, Student> mapStudent = new HashMap<String, Student>();
   public static Map<String, Travel> mapTravels = new HashMap<String, Travel>();
+
+  Pubnub pubnub;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -198,13 +208,36 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       }
     });
 
+    txtChannel = (TextView) findViewById(R.id.txtChannel);
+
 
     // Set up the map fragment
     mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
     // Enable the current location "blue dot"
     mapFragment.getMap().setMyLocationEnabled(true);
     // Set up the camera change handler
+
+
+    pubnub = Application.pubnub;
+
+    btnSubscribe = (Button) findViewById(R.id.btnSubscribe);
+    btnSubscribe.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+        try {
+          pubnub.subscribe(txtChannel.getText().toString(), subscribeCallback);
+          Log.d(TAG, "Subscribed to Channel");
+        } catch (PubnubException e) {
+          Log.e(TAG, e.toString());
+        }
+
+      }
+    });
+
   }
+
+
 
   /*
    * Called when the Activity is no longer visible at all. Stop updates and disconnect.
@@ -773,6 +806,47 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       errorFragment.show(getSupportFragmentManager(), Application.APPTAG);
     }
   }
+
+  public Callback subscribeCallback = new Callback() {
+
+    LatLng mLatLng;
+
+    @Override
+    public void successCallback(String channel, Object response) {
+
+
+      Log.d("PUBNUB", "Sent Message: " + response.toString());
+
+      JSONObject jsonMessage = (JSONObject) response;
+      try {
+        double mLat = jsonMessage.getDouble("lat");
+        double mLng = jsonMessage.getDouble("lng");
+        mLatLng = new LatLng(mLat, mLng);
+      } catch (JSONException e) {
+        Log.e(TAG, e.toString());
+      }
+
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+
+            // Zoom to the current location.
+            updateZoom(mLatLng);
+
+          // Update map radius indicator
+          updateCircle(mLatLng);
+
+
+        }
+      });
+
+    }
+
+    @Override
+    public void errorCallback(String channel, PubnubError error) {
+      Log.d("PUBNUB", error.toString());
+    }
+  };
 
   /*
    * Define a DialogFragment to display the error dialog generated in showErrorDialog.
