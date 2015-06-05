@@ -69,18 +69,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Driver:"
+            android:id="@+id/textDrivers" />
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinnerDriver" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="1">
+
         <Button
             android:layout_width="71dp"
             android:layout_height="wrap_content"
             android:text="Subscribe"
-            android:id="@+id/btnSubscribe" />
-
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtChannel"
-            android:layout_weight="1"
-            android:hint="r:k4loZrVoQCapEjZpe7pxlgCZ4" />
+            android:id="@+id/btnSubscribe"
+            android:layout_weight="0.15" />
 
     </LinearLayout>
 

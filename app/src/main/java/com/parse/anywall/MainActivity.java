@@ -1,5 +1,6 @@
 package com.parse.anywall;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,9 +25,11 @@ import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -144,14 +147,16 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private ImageButton btnAddPlace, btnAddStudent;
   private LinearLayout llPlaces, llStudents;
-  private TextView textStatus, txtChannel;
+  private TextView textStatus, textDrivers;
   private Button btnSubscribe;
+  private Spinner spinnerDriver;
   private int countPlaces = 0, countStudents = 0;
 
   private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
   public static Map<String, Places> mapPlaces = new HashMap<String, Places>();
   public static Map<String, Student> mapStudent = new HashMap<String, Student>();
   public static Map<String, Travel> mapTravels = new HashMap<String, Travel>();
+  public static Map<String, DriverDetail> mapDriverDetails = new HashMap<String, DriverDetail>();
 
   Pubnub pubnub;
 
@@ -208,7 +213,22 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       }
     });
 
-    txtChannel = (TextView) findViewById(R.id.txtChannel);
+    spinnerDriver = (Spinner) findViewById(R.id.spinnerDriver);
+    textDrivers = (TextView) findViewById(R.id.textDrivers);
+    textDrivers.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        ArrayList<String> driverDetailList = new ArrayList<String>();
+        for (Iterator<DriverDetail> iterator = mapDriverDetails.values().iterator(); iterator.hasNext(); ) {
+          DriverDetail _p = iterator.next();
+          driverDetailList.add(_p.getChannel());
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, driverDetailList);
+        spinnerDriver.setAdapter(adapter);
+
+      }
+    });
 
 
     // Set up the map fragment
@@ -226,7 +246,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       public void onClick(View view) {
 
         try {
-          pubnub.subscribe(txtChannel.getText().toString(), subscribeCallback);
+          pubnub.subscribe(spinnerDriver.getSelectedItem().toString(), subscribeCallback);
           Log.d(TAG, "Subscribed to Channel");
         } catch (PubnubException e) {
           Log.e(TAG, e.toString());
@@ -297,6 +317,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     doPlacesQuery();
     doStudentQuery();
+    doDriverQuery();
   }
 
   /*
@@ -618,6 +639,22 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     });
   }
 
+  private void doDriverQuery() {
+    ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
+    query.findInBackground(new FindCallback<DriverDetail>() {
+      @Override
+      public void done(List<DriverDetail> list, ParseException e) {
+        if (e != null) {
+          Toast.makeText(getApplicationContext(), "Error en obtener DriverDetails", Toast.LENGTH_SHORT).show();
+        } else {
+          for (DriverDetail d : list) {
+            mapDriverDetails.put(d.getObjectId(), d);
+          }
+        }
+      }
+    });
+
+  }
 
   private void updateStatus() {
     Calendar now = Calendar.getInstance();

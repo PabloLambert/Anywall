@@ -173,7 +173,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
                 } else {
                     if ( list.size() > 0 ) {
-                        driverDetail = list.get(1);
+                        driverDetail = list.get(0);
 
                     } else {
                         driverDetail = new DriverDetail();
@@ -505,6 +505,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         currentLocation = location;
         count++;
 
+        txtDisplay.setText("count = " + count);
+
         /* Publish a simple message to the channel */
         JSONObject message = new JSONObject();
         try {
@@ -514,6 +516,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         } catch (JSONException e) {
             Log.e(TAG, e.toString());
         }
+
 
         pubnub.publish(driverDetail.getChannel(), message, new Callback() {
         });
