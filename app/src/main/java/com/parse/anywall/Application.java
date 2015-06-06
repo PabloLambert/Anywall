@@ -3,6 +3,7 @@ package com.parse.anywall;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.lambertsoft.base.DriverDetail;
 import com.parse.Parse;
 import com.parse.ParseObject;
 import com.pubnub.api.Pubnub;

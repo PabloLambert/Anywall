@@ -48,6 +48,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.lambertsoft.base.DriverDetail;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;

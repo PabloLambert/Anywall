@@ -1,10 +1,8 @@
-package com.lambertsoft.driver;
+package com.lambertsoft.base;
 
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-
-import java.util.List;
 
 /**
  * Created by InnovaTI on 02-06-15.

@@ -5,9 +5,9 @@ android {
     buildToolsVersion '21.1.2'
 
     defaultConfig {
-        applicationId "com.lambertsoft.driver"
         minSdkVersion 11
         targetSdkVersion 19
+        applicationId 'com.lambertsoft.driver'
     }
 
     buildTypes {
@@ -26,4 +26,5 @@ dependencies {
     compile 'com.google.android.gms:play-services:6.1.71'
     compile files('libs/Parse-1.6.0.jar')
     compile files('libs/Pubnub-Android-3.7.2.jar')
+    compile project(':base')
 }
