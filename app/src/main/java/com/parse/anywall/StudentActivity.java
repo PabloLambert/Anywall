@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.lambertsoft.base.School;
 import com.parse.DeleteCallback;
 import com.parse.GetCallback;
 import com.parse.GetDataCallback;
@@ -64,7 +65,7 @@ public class StudentActivity extends FragmentActivity {
   Button btnStudentAction, btnStudentDelete;
 
   TextView textFromDate, textToDate;
-  Spinner spinnerFromTime, spinnerToTime;
+  Spinner spinnerFromTime, spinnerToTime, spinnerSchool;
   ImageButton btnFromTimePicker, btnToTimePicker;
   ImageView imgStudent;
   Bitmap bitmap;
@@ -74,7 +75,7 @@ public class StudentActivity extends FragmentActivity {
   int action;
   Student student;
   Travel travel;
-  ArrayList<String> placesList;
+  ArrayList<String> placesList, schoolList;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +93,7 @@ public class StudentActivity extends FragmentActivity {
     spinnerToTime = (Spinner) findViewById(R.id.spinnerToPlace);
     textToDate = (TextView) findViewById(R.id.textToDate);
     btnToTimePicker = (ImageButton) findViewById(R.id.btnToTimePicker);
+    spinnerSchool = (Spinner) findViewById(R.id.spinnerSchool);
 
 
     textStudentName.addTextChangedListener(new TextWatcher() {
@@ -182,6 +184,15 @@ public class StudentActivity extends FragmentActivity {
         }
       }
     });
+
+    schoolList = new ArrayList<String>();
+    for (Iterator<School> iterator = MainActivity.mapSchool.values().iterator(); iterator.hasNext(); ){
+      School _s = iterator.next();
+      schoolList.add(_s.getName());
+    }
+
+    ArrayAdapter<String> adapterSchool = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, schoolList);
+    spinnerSchool.setAdapter(adapterSchool);
 
 
     Intent intent = getIntent();

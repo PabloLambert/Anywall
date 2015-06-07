@@ -1,6 +1,7 @@
 package com.lambertsoft.driver;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.location.Location;
@@ -10,6 +11,8 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,13 +23,16 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.lambertsoft.base.DriverDetail;
+import com.lambertsoft.base.School;
 import com.parse.FindCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
@@ -110,7 +116,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     private float lastRadius;
 
     // Fields for helping process map and location changes
-    private final Map<String, Marker> mapMarkers = new HashMap<String, Marker>();
     private int mostRecentMapUpdate;
     private boolean hasSetUpInitialLocation;
     private String selectedPostObjectId;
@@ -125,11 +130,18 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     private Button btnStart, btnStop, btnCount;
     private TextView txtDisplay, txtChannel;
+    private ImageButton btnAddSchool;
+    private LinearLayout llSchool;
     private int count = 0;
     Pubnub pubnub = Application.pubnub;
     JSONObject obj;
 
     DriverDetail driverDetail;
+
+    private int countSchool = 0;
+    public static Map<String, School> mapSchool = new HashMap<String, School>();
+    private Map<String, Marker> mapMarkers = new HashMap<String, Marker>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,6 +169,20 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         // Enable the current location "blue dot"
         mapFragment.getMap().setMyLocationEnabled(true);
         // Set up the camera change handler
+
+        btnAddSchool = (ImageButton) findViewById(R.id.btnAddPlace);
+        btnAddSchool.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent(MainActivity.this, SchoolActivity.class);
+                startActivity(intent);
+
+            }
+        });
+
+        llSchool = (LinearLayout) findViewById(R.id.llPlaces);
+
 
 
         ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
@@ -293,6 +319,9 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         // Query for the latest data to update the views.
 
         mapFragment.getMap().clear();
+        mapMarkers.clear();
+
+        doSchoolQuery();
     }
 
     /*
@@ -555,6 +584,89 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             showErrorDialog(connectionResult.getErrorCode());
         }
     }
+
+
+    private void doSchoolQuery() {
+
+        llSchool.removeViews(0, countSchool);
+        mapSchool.clear();
+
+        ParseQuery<School> query = ParseQuery.getQuery("School");
+        query.findInBackground(new FindCallback<School>() {
+            @Override
+            public void done(List<School> list, ParseException e) {
+                if (e != null) {
+                    Toast.makeText(getApplicationContext(), "Error en obtener School", Toast.LENGTH_SHORT).show();
+                } else {
+
+                    countSchool = list.size();
+                    for (int i = 0; i < countSchool; i++) {
+                        Button tmpButton = new Button(getApplicationContext());
+                        School s = list.get(i);
+                        tmpButton.setText(s.getName());
+                        mapSchool.put(s.getObjectId(), s);
+                        tmpButton.setTag(s.getObjectId());
+                        addActionPlaces(tmpButton);
+                        llSchool.addView(tmpButton, i);
+                    }
+                }
+            }
+        });
+    }
+
+
+    private void addActionPlaces(Button btn) {
+
+        btn.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Intent intent = new Intent(MainActivity.this, SchoolActivity.class);
+                intent.putExtra(SchoolActivity.PLACES_ACTION, SchoolActivity.PLACES_ACTION_MODIFY);
+                intent.putExtra(SchoolActivity.PLACES_OBJECT_ID, (String) view.getTag());
+                startActivity(intent);
+                return false;
+            }
+        });
+
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                School s = mapSchool.get((String) view.getTag());
+
+                if (mapMarkers.get(s.getObjectId()) == null) {
+
+                    MarkerOptions markerOpts =
+                            new MarkerOptions().position(new LatLng(s.getLocation().getLatitude(), s
+                                    .getLocation().getLongitude()));
+                    Marker marker = mapFragment.getMap().addMarker(markerOpts);
+
+                    mapMarkers.put(s.getObjectId(), marker);
+
+                }
+
+                mapFragment.getMap().animateCamera(
+                        CameraUpdateFactory.newLatLng(new LatLng(
+                                s.getLocation().getLatitude(),
+                                s.getLocation().getLongitude())), new GoogleMap.CancelableCallback() {
+                            @Override
+                            public void onFinish() {
+
+                            }
+
+                            @Override
+                            public void onCancel() {
+
+                            }
+                        }
+
+                );
+            }
+        });
+    }
+
+
 
     // New Class
 

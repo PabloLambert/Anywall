@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.lambertsoft.base.DriverDetail;
+import com.lambertsoft.base.School;
 import com.parse.Parse;
 import com.parse.ParseObject;
 import com.pubnub.api.Pubnub;
@@ -42,6 +43,7 @@ public class Application extends android.app.Application {
     ParseObject.registerSubclass(Places.class);
     ParseObject.registerSubclass(Travel.class);
     ParseObject.registerSubclass(DriverDetail.class);
+    ParseObject.registerSubclass(School.class);
 
     Parse.initialize(this, "IU2UBVRnjfs8g65F1ixTOrFMnsUFDmSrptwjh9wq", "C0Ghf2UcrxJgWA9P8IxlRenltHnqiYOggFIzBnLn");
 

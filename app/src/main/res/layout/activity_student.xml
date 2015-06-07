@@ -41,6 +41,23 @@
                 android:hint="Nombre"
                 android:layout_gravity="bottom" />
 
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Colegio : "
+                    android:id="@+id/textView4" />
+
+                <Spinner
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinnerSchool" />
+            </LinearLayout>
+
         </LinearLayout>
 
 

@@ -2,7 +2,6 @@ package com.parse.anywall;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +48,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.lambertsoft.base.DriverDetail;
+import com.lambertsoft.base.School;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
@@ -158,6 +158,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
   public static Map<String, Student> mapStudent = new HashMap<String, Student>();
   public static Map<String, Travel> mapTravels = new HashMap<String, Travel>();
   public static Map<String, DriverDetail> mapDriverDetails = new HashMap<String, DriverDetail>();
+  public static Map<String, School> mapSchool = new HashMap<String, School>();
 
   Pubnub pubnub;
 
@@ -318,7 +319,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     doPlacesQuery();
     doStudentQuery();
-    doDriverQuery();
+    doSchoolQuery();
   }
 
   /*
@@ -640,16 +641,17 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     });
   }
 
-  private void doDriverQuery() {
-    ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
-    query.findInBackground(new FindCallback<DriverDetail>() {
+  private void doSchoolQuery() {
+
+    ParseQuery<School> query = ParseQuery.getQuery("School");
+    query.findInBackground(new FindCallback<School>() {
       @Override
-      public void done(List<DriverDetail> list, ParseException e) {
+      public void done(List<School> list, ParseException e) {
         if (e != null) {
-          Toast.makeText(getApplicationContext(), "Error en obtener DriverDetails", Toast.LENGTH_SHORT).show();
+          Toast.makeText(getApplicationContext(), "Error en obtener School", Toast.LENGTH_SHORT).show();
         } else {
-          for (DriverDetail d : list) {
-            mapDriverDetails.put(d.getObjectId(), d);
+          for (School s : list) {
+            mapSchool.put(s.getObjectId(), s);
           }
         }
       }
