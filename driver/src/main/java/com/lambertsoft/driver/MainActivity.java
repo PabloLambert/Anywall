@@ -128,10 +128,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Stores the current instantiation of the location client in this object
     private LocationClient locationClient;
 
-    private Button btnStart, btnStop, btnCount;
+    private Button btnStart, btnStop, btnCount, btnConfig;
     private TextView txtDisplay, txtChannel;
-    private ImageButton btnAddSchool;
-    private LinearLayout llSchool;
     private int count = 0;
     Pubnub pubnub = Application.pubnub;
     JSONObject obj;
@@ -141,6 +139,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     private int countSchool = 0;
     public static Map<String, School> mapSchool = new HashMap<String, School>();
     private Map<String, Marker> mapMarkers = new HashMap<String, Marker>();
+
+
 
 
     @Override
@@ -170,18 +170,15 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         mapFragment.getMap().setMyLocationEnabled(true);
         // Set up the camera change handler
 
-        btnAddSchool = (ImageButton) findViewById(R.id.btnAddPlace);
-        btnAddSchool.setOnClickListener(new View.OnClickListener() {
+
+        btnConfig = (Button) findViewById(R.id.btnConfig);
+        btnConfig.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                Intent intent = new Intent(MainActivity.this, SchoolActivity.class);
+                Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
                 startActivity(intent);
-
             }
         });
-
-        llSchool = (LinearLayout) findViewById(R.id.llPlaces);
 
 
 
@@ -320,8 +317,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
         mapFragment.getMap().clear();
         mapMarkers.clear();
-
-        doSchoolQuery();
     }
 
     /*
@@ -584,88 +579,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             showErrorDialog(connectionResult.getErrorCode());
         }
     }
-
-
-    private void doSchoolQuery() {
-
-        llSchool.removeViews(0, countSchool);
-        mapSchool.clear();
-
-        ParseQuery<School> query = ParseQuery.getQuery("School");
-        query.findInBackground(new FindCallback<School>() {
-            @Override
-            public void done(List<School> list, ParseException e) {
-                if (e != null) {
-                    Toast.makeText(getApplicationContext(), "Error en obtener School", Toast.LENGTH_SHORT).show();
-                } else {
-
-                    countSchool = list.size();
-                    for (int i = 0; i < countSchool; i++) {
-                        Button tmpButton = new Button(getApplicationContext());
-                        School s = list.get(i);
-                        tmpButton.setText(s.getName());
-                        mapSchool.put(s.getObjectId(), s);
-                        tmpButton.setTag(s.getObjectId());
-                        addActionPlaces(tmpButton);
-                        llSchool.addView(tmpButton, i);
-                    }
-                }
-            }
-        });
-    }
-
-
-    private void addActionPlaces(Button btn) {
-
-        btn.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                Intent intent = new Intent(MainActivity.this, SchoolActivity.class);
-                intent.putExtra(SchoolActivity.PLACES_ACTION, SchoolActivity.PLACES_ACTION_MODIFY);
-                intent.putExtra(SchoolActivity.PLACES_OBJECT_ID, (String) view.getTag());
-                startActivity(intent);
-                return false;
-            }
-        });
-
-
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                School s = mapSchool.get((String) view.getTag());
-
-                if (mapMarkers.get(s.getObjectId()) == null) {
-
-                    MarkerOptions markerOpts =
-                            new MarkerOptions().position(new LatLng(s.getLocation().getLatitude(), s
-                                    .getLocation().getLongitude()));
-                    Marker marker = mapFragment.getMap().addMarker(markerOpts);
-
-                    mapMarkers.put(s.getObjectId(), marker);
-
-                }
-
-                mapFragment.getMap().animateCamera(
-                        CameraUpdateFactory.newLatLng(new LatLng(
-                                s.getLocation().getLatitude(),
-                                s.getLocation().getLongitude())), new GoogleMap.CancelableCallback() {
-                            @Override
-                            public void onFinish() {
-
-                            }
-
-                            @Override
-                            public void onCancel() {
-
-                            }
-                        }
-
-                );
-            }
-        });
-    }
-
 
 
     // New Class

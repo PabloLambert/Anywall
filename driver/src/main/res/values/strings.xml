@@ -24,6 +24,7 @@
     <string name="progress_login">Ingresando...</string>
     <string name="progress_signup">Registrando Usuario...</string>
     <string name="title_activity_school">SchoolActivity</string>
+    <string name="title_activity_config">ConfigActivity</string>
 
 
 
