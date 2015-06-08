@@ -41,8 +41,10 @@ import com.parse.SaveCallback;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Activity which displays a login screen to the user, offering registration as well.
@@ -76,6 +78,8 @@ public class StudentActivity extends FragmentActivity {
   Student student;
   Travel travel;
   ArrayList<String> placesList, schoolList;
+  public static Map<String, School> mapSchool = new HashMap<String, School>();
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {

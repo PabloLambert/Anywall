@@ -28,7 +28,25 @@ public class DriverDetail  extends ParseObject {
 
     public School getSchool() { return (School) getParseObject("school");}
 
-        public static ParseQuery<DriverDetail> getQuery() {
+    //From
+    public int getFromHourOfDay() { return getInt("from_hourofday");}
+
+    public void setFromHourOfDay(int value) { put("from_hourofday", value);}
+
+    public int getFromMinutes() { return getInt("from_minutes");}
+
+    public void setFromMinutes(int value) { put("from_minutes", value);}
+
+    //To
+    public int getToHourOfDay() { return getInt("to_hourofday");}
+
+    public void setToHourOfDay(int value) { put("to_hourofday", value);}
+
+    public int getToMinutes() { return getInt("to_minutes");}
+
+    public void setToMinutes(int value) { put("to_minutes", value);}
+
+    public static ParseQuery<DriverDetail> getQuery() {
             return ParseQuery.getQuery(DriverDetail.class);
         }
 }
