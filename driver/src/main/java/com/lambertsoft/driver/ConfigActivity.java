@@ -13,7 +13,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -23,9 +22,6 @@ import android.widget.Toast;
 
 import com.lambertsoft.base.DriverDetail;
 import com.lambertsoft.base.School;
-import com.parse.DeleteCallback;
-import com.parse.FindCallback;
-import com.parse.GetDataCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
 import com.parse.ParseFile;
@@ -37,7 +33,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +48,7 @@ public class ConfigActivity extends Activity {
     private TextView textDriverName, textChannelName;
     private Spinner spinnerSchool;
     ImageButton btnFromTimePicker, btnToTimePicker;
-    private TextView textFromDate, textToDate;
+    private TextView textFrom_InitDate, textToDate;
 
     private Button btnDriveSave;
     private ImageButton btnAddSchool;
@@ -77,9 +72,9 @@ public class ConfigActivity extends Activity {
         textDriverName = (TextView) findViewById(R.id.textDriverName);
         textChannelName = (TextView) findViewById(R.id.textChannelName);
         spinnerSchool = (Spinner) findViewById(R.id.spinnerSchool);
-        textFromDate = (TextView) findViewById(R.id.textFromDate);
+        textFrom_InitDate = (TextView) findViewById(R.id.textFrom_InitDate);
         textToDate = (TextView) findViewById(R.id.textToDate);
-        btnFromTimePicker = (ImageButton) findViewById(R.id.btnFromTimePicker);
+        //btnFromTimePicker = (ImageButton) findViewById(R.id.btnFromTimePicker);
         btnToTimePicker = (ImageButton) findViewById(R.id.btnToTimePicker);
 
         btnDriveSave = (Button) findViewById(R.id.btnDriverSave);
@@ -100,17 +95,17 @@ public class ConfigActivity extends Activity {
         adapterSchool = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, schoolList);
         spinnerSchool.setAdapter(adapterSchool);
 
-        textFromDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
+        textFrom_InitDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
         final TimePickerDialog timePickerFrom = new TimePickerDialog(ConfigActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int i, int i1) {
                 fromHourDay = i;
                 fromMinutes = i1;
-                textFromDate.setText(showTime(fromHourDay, fromMinutes));
+                textFrom_InitDate.setText(showTime(fromHourDay, fromMinutes));
             }
         },0,0,false);
 
-        btnFromTimePicker.setOnClickListener(new View.OnClickListener() {
+        textFrom_InitDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 timePickerFrom.updateTime(fromHourDay, fromMinutes);
@@ -127,7 +122,7 @@ public class ConfigActivity extends Activity {
                 textToDate.setText(showTime(toHourDay, toMinutes));
             }
         },0,0,false);
-        btnToTimePicker.setOnClickListener(new View.OnClickListener() {
+        textToDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 timePickerTo.updateTime(toHourDay, toMinutes);
@@ -220,7 +215,7 @@ public class ConfigActivity extends Activity {
 
         fromHourDay = driverDetail.getFromHourOfDay();
         fromMinutes = driverDetail.getFromMinutes();
-        textFromDate.setText(showTime(fromHourDay, fromMinutes));
+        textFrom_InitDate.setText(showTime(fromHourDay, fromMinutes));
         toHourDay = driverDetail.getToHourOfDay();
         toMinutes = driverDetail.getToMinutes();
         textToDate.setText(showTime(toHourDay, toMinutes));

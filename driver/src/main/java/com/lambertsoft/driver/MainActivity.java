@@ -181,32 +181,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         });
 
 
-
-        ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
-        query.findInBackground(new FindCallback<DriverDetail>() {
-            @Override
-            public void done(List<DriverDetail> list, ParseException e) {
-                if (e != null ) {
-
-                        Toast.makeText(getApplicationContext(), "Error en obtener DriverDetail" + e.toString(), Toast.LENGTH_SHORT).show();
-
-                } else {
-                    if ( list.size() > 0 ) {
-                        driverDetail = list.get(0);
-
-                    } else {
-                        driverDetail = new DriverDetail();
-                        ParseUser user = ParseUser.getCurrentUser();
-                        ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
-                        driverDetail.setChannel(user.getSessionToken());
-                        driverDetail.setACL(acl);
-                        driverDetail.saveInBackground();
-                    }
-
-                }
-            }
-        });
-
         txtChannel = (TextView) findViewById(R.id.txtChannel);
         txtChannel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -317,6 +291,32 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
         mapFragment.getMap().clear();
         mapMarkers.clear();
+
+
+        ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
+        query.findInBackground(new FindCallback<DriverDetail>() {
+            @Override
+            public void done(List<DriverDetail> list, ParseException e) {
+                if (e != null) {
+
+                    Toast.makeText(getApplicationContext(), "Error en obtener DriverDetail" + e.toString(), Toast.LENGTH_SHORT).show();
+
+                } else {
+                    if (list.size() > 0) {
+                        driverDetail = list.get(0);
+
+                    } else {
+                        driverDetail = new DriverDetail();
+                        ParseUser user = ParseUser.getCurrentUser();
+                        ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
+                        driverDetail.setChannel(user.getSessionToken());
+                        driverDetail.setACL(acl);
+                        driverDetail.saveInBackground();
+                    }
+
+                }
+            }
+        });
     }
 
     /*
