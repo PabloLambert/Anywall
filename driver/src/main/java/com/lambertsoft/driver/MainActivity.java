@@ -141,8 +141,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     private Map<String, Marker> mapMarkers = new HashMap<String, Marker>();
 
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -317,6 +315,22 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                 }
             }
         });
+
+        ParseQuery<School> querySchool = ParseQuery.getQuery("School");
+        querySchool.findInBackground(new FindCallback<School>() {
+            @Override
+            public void done(List<School> list, ParseException e) {
+                if (e != null) {
+                    Toast.makeText(getApplicationContext(), "Error en obtener School" + e.toString(), Toast.LENGTH_SHORT).show();
+                } else {
+                    for (School s : list) {
+                        mapSchool.put(s.getObjectId(), s);
+                    }
+
+                }
+            }
+        });
+
     }
 
     /*

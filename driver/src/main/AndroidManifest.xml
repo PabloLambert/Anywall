@@ -63,6 +63,10 @@
             android:name=".ConfigActivity"
             android:label="@string/title_activity_config" >
         </activity>
+        <activity
+            android:name=".SchoolListActivity"
+            android:label="@string/title_activity_school_list" >
+        </activity>
     </application>
 
 </manifest>

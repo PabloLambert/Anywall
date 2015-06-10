@@ -44,23 +44,19 @@ public class ConfigActivity extends Activity {
     final static public int DEFAULT_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
     final static public int DEFAULT_MINUTES = c.get(Calendar.MINUTE);
 
-    private ImageView imgDriver;
-    private TextView textDriverName, textChannelName;
-    private Spinner spinnerSchool;
+    private ImageView imgDriver, imgSchool;
+    private TextView textDriverName, textChannelName, textSchoolName;
     ImageButton btnFromTimePicker, btnToTimePicker;
-    private TextView textFrom_InitDate, textToDate;
+    private TextView textFrom_InitDate, textFrom_EndDate, textToDate;
 
     private Button btnDriveSave;
-    private ImageButton btnAddSchool;
 
     private Bitmap bitmap;
-    private DriverDetail driverDetail;
-    ArrayList<String> schoolList;
-    ArrayAdapter<String> adapterSchool;
-    int fromHourDay = DEFAULT_HOUR_DAY, fromMinutes = DEFAULT_MINUTES;
+    public DriverDetail driverDetail;
+
+    int fromInitHourDay = DEFAULT_HOUR_DAY, fromInitMinutes = DEFAULT_MINUTES;
+    int fromEndHourDay = DEFAULT_HOUR_DAY, fromEndMinutes = DEFAULT_MINUTES+30;
     int toHourDay = DEFAULT_HOUR_DAY, toMinutes = DEFAULT_MINUTES;
-    School actualSchool;
-    public static Map<String, School> mapSchool = new HashMap<String, School>();
 
 
     @Override
@@ -71,15 +67,16 @@ public class ConfigActivity extends Activity {
         imgDriver = (ImageView) findViewById(R.id.imgDriver);
         textDriverName = (TextView) findViewById(R.id.textDriverName);
         textChannelName = (TextView) findViewById(R.id.textChannelName);
-        spinnerSchool = (Spinner) findViewById(R.id.spinnerSchool);
+        textSchoolName = (TextView) findViewById(R.id.textSchoolName);
+
         textFrom_InitDate = (TextView) findViewById(R.id.textFrom_InitDate);
+        textFrom_EndDate = (TextView) findViewById(R.id.textFrom_EndDate);
         textToDate = (TextView) findViewById(R.id.textToDate);
         //btnFromTimePicker = (ImageButton) findViewById(R.id.btnFromTimePicker);
         btnToTimePicker = (ImageButton) findViewById(R.id.btnToTimePicker);
+        imgSchool = (ImageView) findViewById(R.id.imgSchool);
 
         btnDriveSave = (Button) findViewById(R.id.btnDriverSave);
-        btnAddSchool = (ImageButton) findViewById(R.id.btnAddSchool);
-
 
         imgDriver.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,25 +88,55 @@ public class ConfigActivity extends Activity {
             }
         });
 
-        schoolList = new ArrayList<String>();
-        adapterSchool = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, schoolList);
-        spinnerSchool.setAdapter(adapterSchool);
+        textSchoolName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ConfigActivity.this, SchoolListActivity.class);
+                startActivity(intent);
+            }
+        });
 
         textFrom_InitDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
-        final TimePickerDialog timePickerFrom = new TimePickerDialog(ConfigActivity.this, new TimePickerDialog.OnTimeSetListener() {
+        final TimePickerDialog timePickerFromInit = new TimePickerDialog(ConfigActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int i, int i1) {
-                fromHourDay = i;
-                fromMinutes = i1;
-                textFrom_InitDate.setText(showTime(fromHourDay, fromMinutes));
+                fromInitHourDay = i;
+                fromInitMinutes = i1;
+                textFrom_InitDate.setText(showTime(fromInitHourDay, fromInitMinutes));
             }
         },0,0,false);
 
         textFrom_InitDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                timePickerFrom.updateTime(fromHourDay, fromMinutes);
-                timePickerFrom.show();
+                timePickerFromInit.updateTime(fromInitHourDay, fromInitMinutes);
+                timePickerFromInit.show();
+            }
+        });
+
+        textFrom_EndDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
+        final TimePickerDialog timePickerFromEnd = new TimePickerDialog(ConfigActivity.this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker timePicker, int i, int i1) {
+                fromEndHourDay = i;
+                fromEndMinutes = i1;
+                textFrom_EndDate.setText(showTime(fromEndHourDay, fromEndMinutes));
+            }
+        },0,0,false);
+
+        textFrom_EndDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                timePickerFromEnd.updateTime(fromEndHourDay, fromEndMinutes);
+                timePickerFromEnd.show();
+            }
+        });
+
+        imgSchool.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ConfigActivity.this, SchoolListActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -127,16 +154,6 @@ public class ConfigActivity extends Activity {
             public void onClick(View view) {
                 timePickerTo.updateTime(toHourDay, toMinutes);
                 timePickerTo.show();
-            }
-        });
-
-        btnAddSchool.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                Intent intent = new Intent(ConfigActivity.this, SchoolActivity.class);
-                startActivity(intent);
-
             }
         });
 
@@ -160,14 +177,12 @@ public class ConfigActivity extends Activity {
         dialog.show();
 
         try {
-            schoolList.clear();
             ParseQuery<School> query2 = ParseQuery.getQuery("School");
             List<School> sList = query2.find();
+            MainActivity.mapSchool.clear();
             for (School s : sList) {
-                schoolList.add(s.getName());
-                mapSchool.put(s.getName(), s);
+                MainActivity.mapSchool.put(s.getObjectId(), s);
             }
-            adapterSchool.notifyDataSetChanged();
 
             ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
             List<DriverDetail> driverDetailList = query.find();
@@ -185,8 +200,10 @@ public class ConfigActivity extends Activity {
             } else {
                 driverDetail = new DriverDetail();
                 driverDetail.setChannel(ParseUser.getCurrentUser().getObjectId());
-                driverDetail.setFromHourOfDay(fromHourDay);
-                driverDetail.setFromMinutes(fromMinutes);
+                driverDetail.setFromInitHourOfDay(fromInitHourDay);
+                driverDetail.setFromInitMinutes(fromInitMinutes);
+                driverDetail.setFromEndHourOfDay(fromEndHourDay);
+                driverDetail.setFromEndMinutes(fromEndMinutes);
                 driverDetail.setToHourOfDay(toHourDay);
                 driverDetail.setToMinutes(toMinutes);
             }
@@ -204,18 +221,20 @@ public class ConfigActivity extends Activity {
 
         textDriverName.setText(ParseUser.getCurrentUser().getUsername().toString());
         textChannelName.setText(driverDetail.getChannel());
-        for (int i=0; i < schoolList.size(); i++) {
-            if (driverDetail.getSchool() != null ) {
-                if (schoolList.get(i).compareTo(driverDetail.getSchool().getName()) == 0) {
-                    spinnerSchool.setSelection(i);
-                    actualSchool = mapSchool.get(schoolList.get(i));
-                }
-            }
+        if (driverDetail.getSchool() != null ) {
+            School school = driverDetail.getSchool();
+            textSchoolName.setText(school.getName());
+            textSchoolName.setTag(school.getObjectId());
         }
 
-        fromHourDay = driverDetail.getFromHourOfDay();
-        fromMinutes = driverDetail.getFromMinutes();
-        textFrom_InitDate.setText(showTime(fromHourDay, fromMinutes));
+        fromInitHourDay = driverDetail.getFromInitHourOfDay();
+        fromInitMinutes = driverDetail.getFromInitMinutes();
+        textFrom_InitDate.setText(showTime(fromInitHourDay, fromInitMinutes));
+
+        fromEndHourDay = driverDetail.getFromEndHourOfDay();
+        fromEndMinutes = driverDetail.getFromEndMinutes();
+        textFrom_EndDate.setText(showTime(fromEndHourDay, fromEndMinutes));
+
         toHourDay = driverDetail.getToHourOfDay();
         toMinutes = driverDetail.getToMinutes();
         textToDate.setText(showTime(toHourDay, toMinutes));
@@ -259,6 +278,10 @@ public class ConfigActivity extends Activity {
         dialog.show();
 
         driverDetail.setChannel(textChannelName.getText().toString());
+        String sObj = (String) textSchoolName.getTag();
+        if (sObj != null ) {
+            driverDetail.setSchool(MainActivity.mapSchool.get(sObj));
+        }
 
         if ( bitmap != null ) {
             // Convert it to byte
@@ -274,16 +297,10 @@ public class ConfigActivity extends Activity {
             driverDetail.setPhoto(file);
         }
 
-        String schoolName = (String) spinnerSchool.getSelectedItem();
-        for (int i=0; i < schoolList.size(); i++) {
-            if (schoolList.get(i).compareTo(schoolName) == 0) {
-                actualSchool = mapSchool.get(schoolList.get(i));
-            }
-        }
-
-        driverDetail.setSchool(actualSchool);
-        driverDetail.setFromHourOfDay(fromHourDay);
-        driverDetail.setFromMinutes(fromMinutes);
+        driverDetail.setFromInitHourOfDay(fromInitHourDay);
+        driverDetail.setFromInitMinutes(fromInitMinutes);
+        driverDetail.setFromEndHourOfDay(fromEndHourDay);
+        driverDetail.setFromEndMinutes(fromEndMinutes);
         driverDetail.setToHourOfDay(toHourDay);
         driverDetail.setToMinutes(toMinutes);
 

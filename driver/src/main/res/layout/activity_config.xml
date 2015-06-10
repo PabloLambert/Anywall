@@ -20,13 +20,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/imgDriver"
-            android:src="@drawable/school_bus_driver"
-            android:layout_margin="10dp" />
+            android:src="@drawable/school_bus_driver" />
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp">
 
             <LinearLayout
                 android:orientation="horizontal"
@@ -34,9 +34,9 @@
                 android:layout_height="match_parent">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="80dp"
                     android:layout_height="wrap_content"
-                    android:text="Nombre  :"
+                    android:text="Nombre :"
                     android:id="@+id/textView2" />
 
                 <TextView
@@ -49,19 +49,41 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_marginTop="10dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="80dp"
                     android:layout_height="wrap_content"
-                    android:text="Canal       :"
+                    android:text="Canal :"
                     android:id="@+id/textView3" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="       "
                     android:id="@+id/textChannelName" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:weightSum="1"
+                android:layout_marginTop="10dp">
+
+                <TextView
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="Colegio : "
+                    android:id="@+id/textView4" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textSchoolName" />
+
 
             </LinearLayout>
 
@@ -70,38 +92,10 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:weightSum="1">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Colegio : "
-            android:id="@+id/textView4" />
-
-        <Spinner
-            android:layout_width="114dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/spinnerSchool"
-            android:spinnerMode="dropdown"
-            android:layout_weight="0.70" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btnAddSchool"
-            android:src="@drawable/create_contact" />
-
-
-    </LinearLayout>
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_margin="5dp">
+        android:layout_marginTop="10dp">
 
         <ImageView
             android:layout_width="50dp"
@@ -117,7 +111,7 @@
         <ImageView
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:id="@+id/imageView2"
+            android:id="@+id/imgSchool"
             android:src="@drawable/school2_100x100"
             android:layout_alignTop="@+id/imageView"
             android:layout_toRightOf="@+id/imageView3"
@@ -150,8 +144,9 @@
             android:id="@+id/textFrom_EndDate"
             android:layout_gravity="center_vertical"
             android:layout_alignParentTop="true"
-            android:layout_alignLeft="@+id/imageView2"
-            android:layout_alignStart="@+id/imageView2" />
+            android:layout_alignLeft="@+id/imgSchool"
+            android:layout_alignStart="@+id/imgSchool" />
+
     </RelativeLayout>
 
     <LinearLayout

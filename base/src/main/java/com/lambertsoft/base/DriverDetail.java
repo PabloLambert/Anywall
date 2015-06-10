@@ -29,13 +29,22 @@ public class DriverDetail  extends ParseObject {
     public School getSchool() { return (School) getParseObject("school");}
 
     //From
-    public int getFromHourOfDay() { return getInt("from_hourofday");}
+    public int getFromInitHourOfDay() { return getInt("fromInit_hourofday");}
 
-    public void setFromHourOfDay(int value) { put("from_hourofday", value);}
+    public void setFromInitHourOfDay(int value) { put("fromInit_hourofday", value);}
 
-    public int getFromMinutes() { return getInt("from_minutes");}
+    public int getFromInitMinutes() { return getInt("fromInit_minutes");}
 
-    public void setFromMinutes(int value) { put("from_minutes", value);}
+    public void setFromInitMinutes(int value) { put("fromInit_minutes", value);}
+
+
+    public int getFromEndHourOfDay() { return getInt("fromEnd_hourofday");}
+
+    public void setFromEndHourOfDay(int value) { put("fromEnd_hourofday", value);}
+
+    public int getFromEndMinutes() { return getInt("fromEnd_minutes");}
+
+    public void setFromEndMinutes(int value) { put("fromEnd_minutes", value);}
 
     //To
     public int getToHourOfDay() { return getInt("to_hourofday");}
