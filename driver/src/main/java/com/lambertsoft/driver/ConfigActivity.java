@@ -11,11 +11,9 @@ import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -30,16 +28,15 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 
 public class ConfigActivity extends Activity {
 
     final static public int REQUEST_IMAGE_CAPTURE = 0;
+    final static public int REQUEST_SCHOOL_OBJECT = 1;
     final static public Calendar c = Calendar.getInstance();
     final static public int DEFAULT_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
     final static public int DEFAULT_MINUTES = c.get(Calendar.MINUTE);
@@ -53,6 +50,7 @@ public class ConfigActivity extends Activity {
 
     private Bitmap bitmap;
     public DriverDetail driverDetail;
+    public School actualSchool;
 
     int fromInitHourDay = DEFAULT_HOUR_DAY, fromInitMinutes = DEFAULT_MINUTES;
     int fromEndHourDay = DEFAULT_HOUR_DAY, fromEndMinutes = DEFAULT_MINUTES+30;
@@ -92,7 +90,10 @@ public class ConfigActivity extends Activity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(ConfigActivity.this, SchoolListActivity.class);
-                startActivity(intent);
+                if (actualSchool != null ) {
+                    intent.putExtra(SchoolListActivity.SCHOOL_OBJECT_ID, actualSchool.getObjectId());
+                }
+                startActivityForResult(intent, REQUEST_SCHOOL_OBJECT);
             }
         });
 
@@ -164,25 +165,11 @@ public class ConfigActivity extends Activity {
             }
         });
 
-
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
         final ProgressDialog dialog = new ProgressDialog(ConfigActivity.this);
         dialog.setMessage("Configurando");
         dialog.show();
 
         try {
-            ParseQuery<School> query2 = ParseQuery.getQuery("School");
-            List<School> sList = query2.find();
-            MainActivity.mapSchool.clear();
-            for (School s : sList) {
-                MainActivity.mapSchool.put(s.getObjectId(), s);
-            }
 
             ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
             List<DriverDetail> driverDetailList = query.find();
@@ -194,12 +181,18 @@ public class ConfigActivity extends Activity {
                     bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                     imgDriver.setImageBitmap(bitmap);
                 }
-                School s = driverDetail.getSchool();
-                s.fetch();
+                if ( driverDetail.getSchool() != null ) {
+                    String schoolObjId = driverDetail.getSchool().getObjectId();
+                    if (schoolObjId != null)
+                        actualSchool = MainActivity.mapSchool.get(schoolObjId);
+                }
 
             } else {
                 driverDetail = new DriverDetail();
                 driverDetail.setChannel(ParseUser.getCurrentUser().getObjectId());
+                Collection<School> collection = MainActivity.mapSchool.values();
+                actualSchool = collection.iterator().next();
+                driverDetail.setSchool(actualSchool);
                 driverDetail.setFromInitHourOfDay(fromInitHourDay);
                 driverDetail.setFromInitMinutes(fromInitMinutes);
                 driverDetail.setFromEndHourOfDay(fromEndHourDay);
@@ -215,6 +208,14 @@ public class ConfigActivity extends Activity {
 
         show();
         dialog.dismiss();
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
     }
 
     public void show() {
@@ -222,7 +223,7 @@ public class ConfigActivity extends Activity {
         textDriverName.setText(ParseUser.getCurrentUser().getUsername().toString());
         textChannelName.setText(driverDetail.getChannel());
         if (driverDetail.getSchool() != null ) {
-            School school = driverDetail.getSchool();
+            School school = MainActivity.mapSchool.get(driverDetail.getSchool().getObjectId());
             textSchoolName.setText(school.getName());
             textSchoolName.setTag(school.getObjectId());
         }
@@ -281,6 +282,8 @@ public class ConfigActivity extends Activity {
         String sObj = (String) textSchoolName.getTag();
         if (sObj != null ) {
             driverDetail.setSchool(MainActivity.mapSchool.get(sObj));
+        } else {
+            Toast.makeText(getApplicationContext(), "Error en Schoolname", Toast.LENGTH_SHORT).show();
         }
 
         if ( bitmap != null ) {
@@ -323,6 +326,11 @@ public class ConfigActivity extends Activity {
             Bundle extras = data.getExtras();
             bitmap = (Bitmap) extras.get("data");
             imgDriver.setImageBitmap(bitmap);
+        } else if (requestCode == REQUEST_SCHOOL_OBJECT && resultCode == RESULT_OK) {
+            String sObjId = data.getStringExtra(SchoolListActivity.SCHOOL_OBJECT_ID);
+            School s = MainActivity.mapSchool.get(sObjId);
+            textSchoolName.setText(s.getName());
+            textSchoolName.setTag(s.getObjectId());
         }
     }
 

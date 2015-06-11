@@ -1,25 +1,32 @@
 package com.lambertsoft.driver;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.lambertsoft.base.School;
-import com.parse.ParseQuery;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 
 public class SchoolListActivity extends Activity {
 
-    ArrayList<String> schoolList;
-    ArrayAdapter<String> adapterSchool;
+    final static public String SCHOOL_OBJECT_ID = "School_Objetc_Id";
+
     ListView schoolListView;
+    School actualSchool;
+    Button btnSelectedSchool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,23 +34,48 @@ public class SchoolListActivity extends Activity {
         setContentView(R.layout.activity_school_list);
 
         schoolListView = (ListView) findViewById(R.id.listSchoolView);
+        btnSelectedSchool = (Button) findViewById(R.id.btnSelectedSchool);
 
-        schoolList = new ArrayList<String>();
-        adapterSchool = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, schoolList);
-        schoolListView.setAdapter(adapterSchool);
+        ArrayList<School> schoolArrayList = new ArrayList<School>();
+        for (Iterator<School> iterator = MainActivity.mapSchool.values().iterator(); iterator.hasNext(); ){
+            School _s = iterator.next();
+            schoolArrayList.add(_s);
+        }
+        ArrayAdapter<School> arrayAdapter = new ArrayAdapter<School>(this, android.R.layout.simple_list_item_1, schoolArrayList);
+        schoolListView.setAdapter(arrayAdapter);
+        schoolListView.setSelector(android.R.color.darker_gray);
+        schoolListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+               actualSchool = (School) adapterView.getItemAtPosition(i);
+            }
+        });
+
+        Intent intent = getIntent();
+        String sObjId = intent.getStringExtra(SCHOOL_OBJECT_ID);
+
+        if (sObjId != null ) {
+            actualSchool = MainActivity.mapSchool.get(sObjId);
+        }
+
+        btnSelectedSchool.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                if (actualSchool != null )
+                     intent.putExtra(SCHOOL_OBJECT_ID, actualSchool.getObjectId());
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        });
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        schoolList.clear();
 
-        for (Iterator<School> iterator = MainActivity.mapSchool.values().iterator(); iterator.hasNext(); ){
-            School _s = iterator.next();
-            schoolList.add(_s.getName());
-        }
-        adapterSchool.notifyDataSetChanged();
     }
 
 
@@ -68,4 +100,5 @@ public class SchoolListActivity extends Activity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }

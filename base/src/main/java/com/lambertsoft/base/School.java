@@ -18,6 +18,10 @@ public class School extends ParseObject {
         return getString("name");
     }
 
+    public String toString() {
+        return getName();
+    }
+
     public void setName(String value) {
         put("name", value);
     }
