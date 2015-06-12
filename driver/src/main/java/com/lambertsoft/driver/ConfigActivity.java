@@ -19,6 +19,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.lambertsoft.base.DriverDetail;
+import com.lambertsoft.base.Places;
 import com.lambertsoft.base.School;
 import com.parse.ParseACL;
 import com.parse.ParseException;
@@ -37,20 +38,23 @@ public class ConfigActivity extends Activity {
 
     final static public int REQUEST_IMAGE_CAPTURE = 0;
     final static public int REQUEST_SCHOOL_OBJECT = 1;
+    final static public int REQUEST_PLACES_OBJECT = 2;
+
     final static public Calendar c = Calendar.getInstance();
     final static public int DEFAULT_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
     final static public int DEFAULT_MINUTES = c.get(Calendar.MINUTE);
 
-    private ImageView imgDriver, imgSchool;
-    private TextView textDriverName, textChannelName, textSchoolName;
-    ImageButton btnFromTimePicker, btnToTimePicker;
-    private TextView textFrom_InitDate, textFrom_EndDate, textToDate;
+    private ImageView imgDriver, imgSchool, imgPlaces;
+    private TextView textDriverName, textSchoolName;
+    ImageButton btnFromTimePicker;
+    private TextView textFrom_InitDate, textFrom_EndDate;
 
     private Button btnDriveSave;
 
     private Bitmap bitmap;
     public DriverDetail driverDetail;
     public School actualSchool;
+    public Places actualPlaces;
 
     int fromInitHourDay = DEFAULT_HOUR_DAY, fromInitMinutes = DEFAULT_MINUTES;
     int fromEndHourDay = DEFAULT_HOUR_DAY, fromEndMinutes = DEFAULT_MINUTES+30;
@@ -64,17 +68,31 @@ public class ConfigActivity extends Activity {
 
         imgDriver = (ImageView) findViewById(R.id.imgDriver);
         textDriverName = (TextView) findViewById(R.id.textDriverName);
-        textChannelName = (TextView) findViewById(R.id.textChannelName);
         textSchoolName = (TextView) findViewById(R.id.textSchoolName);
 
         textFrom_InitDate = (TextView) findViewById(R.id.textFrom_InitDate);
         textFrom_EndDate = (TextView) findViewById(R.id.textFrom_EndDate);
-        textToDate = (TextView) findViewById(R.id.textToDate);
         //btnFromTimePicker = (ImageButton) findViewById(R.id.btnFromTimePicker);
-        btnToTimePicker = (ImageButton) findViewById(R.id.btnToTimePicker);
         imgSchool = (ImageView) findViewById(R.id.imgSchool);
+        imgPlaces = (ImageView) findViewById(R.id.imgPlaces);
 
         btnDriveSave = (Button) findViewById(R.id.btnDriverSave);
+
+        imgPlaces.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ConfigActivity.this, PlacesActivity.class);
+                if (actualPlaces == null) {
+                    intent.putExtra(PlacesActivity.PLACES_ACTION, PlacesActivity.PLACES_ACTION_CREATE);
+                    startActivityForResult(intent, REQUEST_PLACES_OBJECT);
+                } else {
+                    intent.putExtra(PlacesActivity.PLACES_ACTION, PlacesActivity.PLACES_ACTION_MODIFY);
+                    intent.putExtra(PlacesActivity.PLACES_OBJECT_ID, actualPlaces.getObjectId());
+                    startActivityForResult(intent, REQUEST_PLACES_OBJECT);
+                }
+            }
+        });
+
 
         imgDriver.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -141,23 +159,6 @@ public class ConfigActivity extends Activity {
             }
         });
 
-        textToDate.setText(showTime(toHourDay, toMinutes));
-        final TimePickerDialog timePickerTo = new TimePickerDialog(ConfigActivity.this, new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker timePicker, int i, int i1) {
-                toHourDay = i;
-                toMinutes = i1;
-                textToDate.setText(showTime(toHourDay, toMinutes));
-            }
-        },0,0,false);
-        textToDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                timePickerTo.updateTime(toHourDay, toMinutes);
-                timePickerTo.show();
-            }
-        });
-
         btnDriveSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -186,13 +187,21 @@ public class ConfigActivity extends Activity {
                     if (schoolObjId != null)
                         actualSchool = MainActivity.mapSchool.get(schoolObjId);
                 }
+                if (driverDetail.getPlaces() != null ) {
+                    String placesObjId = driverDetail.getPlaces().getObjectId();
+                    if (placesObjId != null )
+                        actualPlaces = MainActivity.mapPlaces.get(placesObjId);
+                }
 
             } else {
                 driverDetail = new DriverDetail();
                 driverDetail.setChannel(ParseUser.getCurrentUser().getObjectId());
-                Collection<School> collection = MainActivity.mapSchool.values();
-                actualSchool = collection.iterator().next();
+                Collection<School> collSchool = MainActivity.mapSchool.values();
+                actualSchool = collSchool.iterator().next();
                 driverDetail.setSchool(actualSchool);
+                Collection<Places> collPlaces = MainActivity.mapPlaces.values();
+                actualPlaces = collPlaces.iterator().next();
+                driverDetail.setPlaces(actualPlaces);
                 driverDetail.setFromInitHourOfDay(fromInitHourDay);
                 driverDetail.setFromInitMinutes(fromInitMinutes);
                 driverDetail.setFromEndHourOfDay(fromEndHourDay);
@@ -221,7 +230,6 @@ public class ConfigActivity extends Activity {
     public void show() {
 
         textDriverName.setText(ParseUser.getCurrentUser().getUsername().toString());
-        textChannelName.setText(driverDetail.getChannel());
         if (driverDetail.getSchool() != null ) {
             School school = MainActivity.mapSchool.get(driverDetail.getSchool().getObjectId());
             textSchoolName.setText(school.getName());
@@ -238,7 +246,6 @@ public class ConfigActivity extends Activity {
 
         toHourDay = driverDetail.getToHourOfDay();
         toMinutes = driverDetail.getToMinutes();
-        textToDate.setText(showTime(toHourDay, toMinutes));
 
     }
 
@@ -278,13 +285,15 @@ public class ConfigActivity extends Activity {
         dialog.setMessage("Guardando configuración");
         dialog.show();
 
-        driverDetail.setChannel(textChannelName.getText().toString());
+        driverDetail.setChannel(driverDetail.getObjectId());
         String sObj = (String) textSchoolName.getTag();
         if (sObj != null ) {
             driverDetail.setSchool(MainActivity.mapSchool.get(sObj));
         } else {
             Toast.makeText(getApplicationContext(), "Error en Schoolname", Toast.LENGTH_SHORT).show();
         }
+        if (actualPlaces != null )
+            driverDetail.setPlaces(actualPlaces);
 
         if ( bitmap != null ) {
             // Convert it to byte
@@ -331,6 +340,9 @@ public class ConfigActivity extends Activity {
             School s = MainActivity.mapSchool.get(sObjId);
             textSchoolName.setText(s.getName());
             textSchoolName.setTag(s.getObjectId());
+        } else if (requestCode == REQUEST_PLACES_OBJECT && resultCode == RESULT_OK) {
+            String sObjId = data.getStringExtra(PlacesActivity.PLACES_OBJECT_ID);
+            actualPlaces = MainActivity.mapPlaces.get(sObjId);
         }
     }
 

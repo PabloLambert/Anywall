@@ -1,11 +1,9 @@
 package com.parse.anywall;
 
+import com.lambertsoft.base.Places;
 import com.parse.ParseClassName;
-import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-
-import java.util.Date;
 
 /**
  * Created by InnovaTI on 17-05-15.

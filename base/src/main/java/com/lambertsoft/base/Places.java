@@ -1,4 +1,4 @@
-package com.parse.anywall;
+package com.lambertsoft.base;
 
 import com.parse.ParseClassName;
 import com.parse.ParseGeoPoint;

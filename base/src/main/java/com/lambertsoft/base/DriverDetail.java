@@ -28,6 +28,10 @@ public class DriverDetail  extends ParseObject {
 
     public School getSchool() { return (School) getParseObject("school");}
 
+    public void setPlaces(Places value) {put("places", value); }
+
+    public Places getPlaces() { return (Places) getParseObject("places"); }
+
     //From
     public int getFromInitHourOfDay() { return getInt("fromInit_hourofday");}
 

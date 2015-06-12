@@ -1,5 +1,6 @@
-package com.parse.anywall;
+package com.lambertsoft.driver;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Address;
@@ -169,6 +170,7 @@ public class PlacesActivity extends FragmentActivity {
         if ( action == PLACES_ACTION_CREATE) {
             // Create a post.
             places = new Places();
+            p = places;
         } else if (action == PLACES_ACTION_MODIFY ) {
             // Using existing place
             places = p;
@@ -177,27 +179,32 @@ public class PlacesActivity extends FragmentActivity {
             return;
         }
 
-            // Set up a progress dialog
-            final ProgressDialog dialog = new ProgressDialog(PlacesActivity.this);
-            dialog.setMessage("Guardando Lugar...");
-            dialog.show();
+        // Set up a progress dialog
+        final ProgressDialog dialog = new ProgressDialog(PlacesActivity.this);
+        dialog.setMessage("Guardando Lugar...");
+        dialog.show();
 
-            // Set the location to the current user's location
-            places.setName(name);
-            places.setDirection(direction);
-            places.setLocation(geoPoint);
+        // Set the location to the current user's location
+        places.setName(name);
+        places.setDirection(direction);
+        places.setLocation(geoPoint);
 
-            ParseUser user = ParseUser.getCurrentUser();
-            places.setACL(new ParseACL(user));
+        ParseUser user = ParseUser.getCurrentUser();
+        places.setACL(new ParseACL(user));
 
-            // Save the Student
-            places.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(ParseException e) {
-                    dialog.dismiss();
-                    finish();
-                }
-            });
+        // Save the Student
+        places.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                Intent intent = new Intent();
+                if (p != null )
+                    intent.putExtra(PLACES_OBJECT_ID, p.getObjectId());
+                setResult(RESULT_OK, intent);
+                MainActivity.updatePlaces();
+                dialog.dismiss();
+                finish();
+            }
+        });
 
 
     }
@@ -295,3 +302,4 @@ public class PlacesActivity extends FragmentActivity {
     }
 
 }
+

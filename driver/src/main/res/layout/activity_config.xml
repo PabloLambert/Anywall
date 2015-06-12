@@ -49,26 +49,6 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="10dp">
-
-                <TextView
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:text="Canal :"
-                    android:id="@+id/textView3" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="       "
-                    android:id="@+id/textChannelName" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:weightSum="1"
                 android:layout_marginTop="10dp">
@@ -95,12 +75,12 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="30dp">
 
         <ImageView
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:id="@+id/imageView"
+            android:id="@+id/imgPlaces"
             android:src="@drawable/home1_100x100"
             android:layout_marginLeft="31dp"
             android:layout_marginStart="31dp"
@@ -113,7 +93,7 @@
             android:layout_height="50dp"
             android:id="@+id/imgSchool"
             android:src="@drawable/school2_100x100"
-            android:layout_alignTop="@+id/imageView"
+            android:layout_alignTop="@+id/imgPlaces"
             android:layout_toRightOf="@+id/imageView3"
             android:layout_toEndOf="@+id/imageView3"
             android:layout_marginLeft="31dp"
@@ -134,8 +114,8 @@
             android:id="@+id/textFrom_InitDate"
             android:layout_gravity="center_vertical"
             android:layout_alignParentTop="true"
-            android:layout_alignLeft="@+id/imageView"
-            android:layout_alignStart="@+id/imageView" />
+            android:layout_alignLeft="@+id/imgPlaces"
+            android:layout_alignStart="@+id/imgPlaces" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -152,35 +132,9 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Regreso :   Inicio =>  "
-            android:id="@+id/textViewTo"
-            android:layout_gravity="center_vertical" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="08:22 AM"
-            android:id="@+id/textToDate"
-            android:layout_gravity="center_vertical" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btnToTimePicker"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/btn_radio_on_pressed_holo_light" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="30dp">
 
         <Button
             android:id="@+id/btnDriverSave"

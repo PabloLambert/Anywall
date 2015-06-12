@@ -26,6 +26,7 @@
     <string name="title_activity_school">SchoolActivity</string>
     <string name="title_activity_config">ConfigActivity</string>
     <string name="title_activity_school_list">SchoolListActivity</string>
+    <string name="title_activity_places">PlacesActivity</string>
 
 
 

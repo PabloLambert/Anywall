@@ -32,6 +32,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.lambertsoft.base.DriverDetail;
+import com.lambertsoft.base.Places;
 import com.lambertsoft.base.School;
 import com.parse.FindCallback;
 import com.parse.ParseACL;
@@ -138,6 +139,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     private int countSchool = 0;
     public static Map<String, School> mapSchool = new HashMap<String, School>();
+    public static Map<String, Places> mapPlaces = new HashMap<String, Places>();
+
     private Map<String, Marker> mapMarkers = new HashMap<String, Marker>();
 
 
@@ -330,9 +333,27 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                 }
             }
         });
+        updatePlaces();
 
     }
 
+    public static void updatePlaces() {
+        ParseQuery<Places> queryPlaces = ParseQuery.getQuery("Places");
+        queryPlaces.findInBackground(new FindCallback<Places>() {
+            @Override
+            public void done(List<Places> list, ParseException e) {
+                if (e != null) {
+                    //Toast.makeText(this, "Error en obtener Places" + e.toString(), Toast.LENGTH_SHORT).show();
+                } else {
+                    for (Places p : list) {
+                        mapPlaces.put(p.getObjectId(), p);
+                    }
+
+                }
+            }
+        });
+
+    }
     /*
   * Displays a circle on the map representing the search radius
   */

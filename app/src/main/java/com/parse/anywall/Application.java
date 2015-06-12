@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.lambertsoft.base.DriverDetail;
+import com.lambertsoft.base.Places;
 import com.lambertsoft.base.School;
 import com.parse.Parse;
 import com.parse.ParseObject;
