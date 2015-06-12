@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,6 +36,8 @@ import java.util.List;
 
 
 public class ConfigActivity extends Activity {
+
+    final static public String TAG = ConfigActivity.class.getSimpleName();
 
     final static public int REQUEST_IMAGE_CAPTURE = 0;
     final static public int REQUEST_SCHOOL_OBJECT = 1;
@@ -343,6 +346,7 @@ public class ConfigActivity extends Activity {
         } else if (requestCode == REQUEST_PLACES_OBJECT && resultCode == RESULT_OK) {
             String sObjId = data.getStringExtra(PlacesActivity.PLACES_OBJECT_ID);
             actualPlaces = MainActivity.mapPlaces.get(sObjId);
+            Log.d(TAG, "actualPlaces = " + actualPlaces.getName());
         }
     }
 
