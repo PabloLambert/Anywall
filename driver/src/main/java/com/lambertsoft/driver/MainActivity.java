@@ -339,6 +339,19 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     public static void updatePlaces() {
         ParseQuery<Places> queryPlaces = ParseQuery.getQuery("Places");
+
+
+        try {
+            List<Places> list = queryPlaces.find();
+            for (Places p : list) {
+                mapPlaces.put(p.getObjectId(), p);
+            }
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        /*
         queryPlaces.findInBackground(new FindCallback<Places>() {
             @Override
             public void done(List<Places> list, ParseException e) {
@@ -352,6 +365,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                 }
             }
         });
+        */
 
     }
     /*

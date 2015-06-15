@@ -192,6 +192,19 @@ public class PlacesActivity extends FragmentActivity {
         ParseUser user = ParseUser.getCurrentUser();
         places.setACL(new ParseACL(user));
 
+        try {
+            places.save();
+            Intent intent = new Intent();
+            intent.putExtra(PLACES_OBJECT_ID, places.getObjectId());
+            setResult(RESULT_OK, intent);
+            MainActivity.updatePlaces();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        dialog.dismiss();
+        finish();
+
+        /*
         // Save the Student
         places.saveInBackground(new SaveCallback() {
             @Override
@@ -205,6 +218,7 @@ public class PlacesActivity extends FragmentActivity {
                 finish();
             }
         });
+        */
 
 
     }
@@ -295,7 +309,7 @@ public class PlacesActivity extends FragmentActivity {
 
                 // Locate the first location
                 if(i==0)
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 5));
             }
             updateButtonState();
         }

@@ -37,10 +37,12 @@ import java.util.List;
 
 public class SchoolActivity extends FragmentActivity {
 
-    final static public String PLACES_ACTION = "PLACES_ACTION";
-    final static public String PLACES_OBJECT_ID = "PLACES_OBJECT";
-    final static public int PLACES_ACTION_CREATE = 1;
-    final static public int PLACES_ACTION_MODIFY = 2;
+    final static public String SCHOOL_ACTION = "SCHOOL_ACTION";
+    final static public String SCHOOL_OBJECT_ID = "SCHOOL_OBJECT";
+    final static public int SCHOOL_ACTION_CREATE = 1;
+    final static public int SCHOOL_ACTION_MODIFY = 2;
+    final static public int SCHOOL_ACTION_VIEW = 3;
+
 
     EditText textPlaceName, textPlaceDirection;
     Button btnPlaceAction, btnPlaceDelete;
@@ -49,6 +51,7 @@ public class SchoolActivity extends FragmentActivity {
     private ParseGeoPoint geoPoint;
     int action;
     School s;
+    boolean enableAction = false;
 
 
     @Override
@@ -132,19 +135,29 @@ public class SchoolActivity extends FragmentActivity {
         googleMap = supportMapFragment.getMap();
 
         Intent intent = getIntent();
-        action = intent.getIntExtra(PLACES_ACTION, PLACES_ACTION_CREATE);
+        action = intent.getIntExtra(SCHOOL_ACTION, SCHOOL_ACTION_CREATE);
 
-        if (action == PLACES_ACTION_CREATE ) {
+        if (action == SCHOOL_ACTION_CREATE ) {
             btnPlaceAction.setText("Agregar");
+            enableAction = true;
             btnPlaceDelete.setEnabled(false);
-        } else if (action == PLACES_ACTION_MODIFY ) {
+
+        } else if (action == SCHOOL_ACTION_MODIFY ) {
             btnPlaceAction.setText("Modificar");
+            enableAction = true;
             btnPlaceDelete.setEnabled(true);
-            s = MainActivity.mapSchool.get(intent.getStringExtra(PLACES_OBJECT_ID));
+            s = MainActivity.mapSchool.get(intent.getStringExtra(SCHOOL_OBJECT_ID));
             textPlaceName.setText(s.getName());
             textPlaceDirection.setText(s.getAddress());
             new GeocoderTask().execute(s.getAddress());
-
+        } else if ( action == SCHOOL_ACTION_VIEW ) {
+            btnPlaceAction.setText("Ver");
+            enableAction = false;
+            btnPlaceDelete.setEnabled(false);
+            s = MainActivity.mapSchool.get(intent.getStringExtra(SCHOOL_OBJECT_ID));
+            textPlaceName.setText(s.getName());
+            textPlaceDirection.setText(s.getAddress());
+            new GeocoderTask().execute(s.getAddress());
         } else {
             Toast.makeText(getApplicationContext(), "Action Error", Toast.LENGTH_SHORT).show();
             return;
@@ -156,9 +169,10 @@ public class SchoolActivity extends FragmentActivity {
         int placeNameLength = textPlaceName.getText().toString().length();
         int placeDirectionLength = textPlaceDirection.getText().toString().length();
 
-        boolean enabled = placeDirectionLength > 0 && placeNameLength > 0 && geoPoint != null;
-
-        btnPlaceAction.setEnabled(enabled);
+        if (enableAction) {
+            boolean enabled = placeDirectionLength > 0 && placeNameLength > 0 && geoPoint != null;
+            btnPlaceAction.setEnabled(enabled);
+        }
     }
 
     public void saveData() {
@@ -167,10 +181,10 @@ public class SchoolActivity extends FragmentActivity {
         String direction = textPlaceDirection.getText().toString().trim();
         School school;
 
-        if ( action == PLACES_ACTION_CREATE) {
+        if ( action == SCHOOL_ACTION_CREATE) {
             // Create a post.
             school = new School();
-        } else if (action == PLACES_ACTION_MODIFY ) {
+        } else if (action == SCHOOL_ACTION_MODIFY ) {
             // Using existing place
             school = s;
         } else {
@@ -289,7 +303,8 @@ public class SchoolActivity extends FragmentActivity {
 
                 // Locate the first location
                 if(i==0)
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,5));
+
             }
             updateButtonState();
         }

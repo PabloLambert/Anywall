@@ -43,6 +43,7 @@ public class ConfigActivity extends Activity {
     final static public int REQUEST_SCHOOL_OBJECT = 1;
     final static public int REQUEST_PLACES_OBJECT = 2;
 
+
     final static public Calendar c = Calendar.getInstance();
     final static public int DEFAULT_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
     final static public int DEFAULT_MINUTES = c.get(Calendar.MINUTE);
@@ -157,8 +158,12 @@ public class ConfigActivity extends Activity {
         imgSchool.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(ConfigActivity.this, SchoolListActivity.class);
-                startActivity(intent);
+                Intent intent = new Intent(ConfigActivity.this, SchoolActivity.class);
+                if (actualSchool != null) {
+                    intent.putExtra(SchoolActivity.SCHOOL_ACTION, SchoolActivity.SCHOOL_ACTION_VIEW);
+                    intent.putExtra(SchoolActivity.SCHOOL_OBJECT_ID, actualSchool.getObjectId());
+                    startActivity(intent);
+                }
             }
         });
 
@@ -340,9 +345,9 @@ public class ConfigActivity extends Activity {
             imgDriver.setImageBitmap(bitmap);
         } else if (requestCode == REQUEST_SCHOOL_OBJECT && resultCode == RESULT_OK) {
             String sObjId = data.getStringExtra(SchoolListActivity.SCHOOL_OBJECT_ID);
-            School s = MainActivity.mapSchool.get(sObjId);
-            textSchoolName.setText(s.getName());
-            textSchoolName.setTag(s.getObjectId());
+            actualSchool = MainActivity.mapSchool.get(sObjId);
+            textSchoolName.setText(actualSchool.getName());
+            textSchoolName.setTag(actualSchool.getObjectId());
         } else if (requestCode == REQUEST_PLACES_OBJECT && resultCode == RESULT_OK) {
             String sObjId = data.getStringExtra(PlacesActivity.PLACES_OBJECT_ID);
             actualPlaces = MainActivity.mapPlaces.get(sObjId);
