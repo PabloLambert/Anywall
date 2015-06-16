@@ -11,8 +11,6 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,14 +21,12 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.lambertsoft.base.DriverDetail;
 import com.lambertsoft.base.Places;
 import com.lambertsoft.base.School;
@@ -46,6 +42,7 @@ import com.pubnub.api.Pubnub;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,6 +100,10 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Maximum post search radius for map in kilometers
     private static final int MAX_POST_SEARCH_DISTANCE = 100;
 
+    private static final int STATE_WAITING  = 0;
+    private static final int STATE_ONTRAVEL = 1;
+    private static final int STATE_FINISHED = 2;
+
     /*
      * Other class member variables
      */
@@ -130,12 +131,13 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     private LocationClient locationClient;
 
     private Button btnStart, btnStop, btnCount, btnConfig;
-    private TextView txtDisplay, txtChannel;
+    private TextView txtState, txtChannel, txtNextEvent, txtGeoEvent;
     private int count = 0;
     Pubnub pubnub = Application.pubnub;
     JSONObject obj;
 
     DriverDetail driverDetail;
+    private int state = STATE_WAITING;
 
     private int countSchool = 0;
     public static Map<String, School> mapSchool = new HashMap<String, School>();
@@ -216,7 +218,43 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             }
         });
 
-        txtDisplay = (TextView)findViewById(R.id.txtDisplay);
+        txtState = (TextView)findViewById(R.id.txtState);
+        txtState.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (driverDetail != null) {
+                    long l = getTimeForNextEvent(driverDetail);
+                }
+                String sName;
+                switch (state) {
+                    case STATE_WAITING:
+                        sName = "STATE_WAITING";
+                        break;
+                    case STATE_ONTRAVEL:
+                        sName = "STATE_ONTRAVEL";
+                        break;
+                    case STATE_FINISHED:
+                        sName = "STATE_FINISHED";
+                        break;
+                    default:
+                        sName = "Undefined";
+                }
+                txtState.setText(sName);
+            }
+        });
+
+        txtNextEvent = (TextView) findViewById(R.id.txtNextEvent);
+        txtNextEvent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (driverDetail != null) {
+                    long l = getTimeForNextEvent(driverDetail);
+                    txtNextEvent.setText(l/1000 + " segundos");
+
+                }
+            }
+        });
+        txtGeoEvent = (TextView) findViewById(R.id.txtGeoEvents);
 
         btnCount = (Button) findViewById(R.id.btnCount);
         btnCount.setOnClickListener(new View.OnClickListener() {
@@ -224,13 +262,42 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             public void onClick(View view) {
                 try {
                     if (currentLocation != null )
-                     txtDisplay.setText("CurrentLocation = " + currentLocation.toString());
+                        txtGeoEvent.setText("CurrentLocation = " + currentLocation.toString());
 
                 } catch ( Exception e) {
                     Log.e(TAG, "error");
                 }
+
             }
         });
+
+    }
+
+
+    public long getTimeForNextEvent(DriverDetail driverDetail) {
+        Calendar fromInit = Calendar.getInstance();
+        fromInit.set(Calendar.HOUR_OF_DAY, driverDetail.getFromInitHourOfDay());
+        fromInit.set(Calendar.MINUTE, driverDetail.getFromInitMinutes());
+        long fromInitMinutes = fromInit.getTimeInMillis();
+
+        Calendar fromEnd = Calendar.getInstance();
+        fromEnd.set(Calendar.HOUR_OF_DAY, driverDetail.getFromEndHourOfDay());
+        fromEnd.set(Calendar.MINUTE, driverDetail.getFromEndMinutes());
+        long fromEndMinutes = fromEnd.getTimeInMillis();
+
+        long rightNow = Calendar.getInstance().getTimeInMillis();
+
+        if (fromInitMinutes < rightNow ) {
+            state = STATE_WAITING;
+            return (rightNow - fromInitMinutes);
+        } else if (fromInitMinutes >=  rightNow &&  rightNow < fromEndMinutes ) {
+            state = STATE_ONTRAVEL;
+            return (fromEndMinutes - rightNow);
+        } else if  ( rightNow >= fromEndMinutes ) {
+            state = STATE_FINISHED;
+            return (rightNow - fromEndMinutes);
+        }
+        return -1;
 
     }
 
@@ -574,7 +641,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         currentLocation = location;
         count++;
 
-        txtDisplay.setText("count = " + count);
+        txtState.setText("count = " + count);
 
         /* Publish a simple message to the channel */
         JSONObject message = new JSONObject();
