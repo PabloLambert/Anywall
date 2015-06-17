@@ -155,9 +155,11 @@ public class SchoolActivity extends FragmentActivity {
             enableAction = false;
             btnPlaceDelete.setEnabled(false);
             s = MainActivity.mapSchool.get(intent.getStringExtra(SCHOOL_OBJECT_ID));
-            textPlaceName.setText(s.getName());
-            textPlaceDirection.setText(s.getAddress());
-            new GeocoderTask().execute(s.getAddress());
+            if (s != null ) {
+                textPlaceName.setText(s.getName());
+                textPlaceDirection.setText(s.getAddress());
+                new GeocoderTask().execute(s.getAddress());
+            }
         } else {
             Toast.makeText(getApplicationContext(), "Action Error", Toast.LENGTH_SHORT).show();
             return;

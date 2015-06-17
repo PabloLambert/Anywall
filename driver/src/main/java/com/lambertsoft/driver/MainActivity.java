@@ -1,11 +1,16 @@
 package com.lambertsoft.driver;
 
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -58,6 +63,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
      * Activity.onActivityResult
      */
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    public final static int ALARM_ARRIVED = 1;
 
     /*
      * Constants for location update parameters
@@ -189,9 +195,9 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             @Override
             public void onClick(View view) {
                 if (driverDetail != null ) {
-                    txtChannel.setText("Channel: " + driverDetail.getChannel());
+                    txtChannel.setText(driverDetail.getChannel());
                 } else {
-                    txtChannel.setText("Channel: ");
+                    txtChannel.setText("  ");
                 }
             }
         });
@@ -249,8 +255,9 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             public void onClick(View view) {
                 if (driverDetail != null) {
                     long l = getTimeForNextEvent(driverDetail);
-                    txtNextEvent.setText(l/1000 + " segundos");
-
+                    long min = l/(60*1000);
+                    long sec = (l%(60*1000))/1000;
+                    txtNextEvent.setText( min + " [min] " + sec + " [sec]" );
                 }
             }
         });
@@ -278,24 +285,26 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         Calendar fromInit = Calendar.getInstance();
         fromInit.set(Calendar.HOUR_OF_DAY, driverDetail.getFromInitHourOfDay());
         fromInit.set(Calendar.MINUTE, driverDetail.getFromInitMinutes());
+        fromInit.set(Calendar.SECOND, 0);
         long fromInitMinutes = fromInit.getTimeInMillis();
 
         Calendar fromEnd = Calendar.getInstance();
         fromEnd.set(Calendar.HOUR_OF_DAY, driverDetail.getFromEndHourOfDay());
         fromEnd.set(Calendar.MINUTE, driverDetail.getFromEndMinutes());
+        fromEnd.set(Calendar.SECOND, 0);
         long fromEndMinutes = fromEnd.getTimeInMillis();
 
         long rightNow = Calendar.getInstance().getTimeInMillis();
 
-        if (fromInitMinutes < rightNow ) {
+        if (rightNow < fromInitMinutes ) {
             state = STATE_WAITING;
-            return (rightNow - fromInitMinutes);
-        } else if (fromInitMinutes >=  rightNow &&  rightNow < fromEndMinutes ) {
+            return ( fromInitMinutes - rightNow);
+        } else if ((rightNow >= fromInitMinutes ) &&  (rightNow < fromEndMinutes) ) {
             state = STATE_ONTRAVEL;
             return (fromEndMinutes - rightNow);
         } else if  ( rightNow >= fromEndMinutes ) {
             state = STATE_FINISHED;
-            return (rightNow - fromEndMinutes);
+            return 0;
         }
         return -1;
 
@@ -310,11 +319,11 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     public void onStop() {
         // If the client is connected
         if (locationClient.isConnected()) {
-            stopPeriodicUpdates();
+            //stopPeriodicUpdates();
         }
 
         // After disconnect() is called, the client is considered "dead".
-        locationClient.disconnect();
+        //locationClient.disconnect();
 
         super.onStop();
     }
@@ -329,7 +338,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         super.onStart();
 
         // Connect to the location services client
-        locationClient.connect();
+        //locationClient.connect();
     }
 
 
@@ -360,7 +369,36 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         mapFragment.getMap().clear();
         mapMarkers.clear();
 
+        try {
 
+            ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
+            List<DriverDetail> list = query.find();
+
+            if (list.size() > 0) {
+                    driverDetail = list.get(0);
+
+            } else {
+                    driverDetail = new DriverDetail();
+                    ParseUser user = ParseUser.getCurrentUser();
+                    ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
+                    driverDetail.setChannel(user.getSessionToken());
+                    driverDetail.setACL(acl);
+                    driverDetail.save();
+            }
+
+            ParseQuery<School> querySchool = ParseQuery.getQuery("School");
+            List<School> sList = querySchool.find();
+            for (School s : sList) {
+                mapSchool.put(s.getObjectId(), s);
+            }
+
+        } catch (ParseException e){
+            Toast.makeText(getApplicationContext(), "Error en obtener DriverDetail" + e.toString(), Toast.LENGTH_SHORT).show();
+
+        }
+
+
+        /*
         ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
         query.findInBackground(new FindCallback<DriverDetail>() {
             @Override
@@ -400,7 +438,9 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                 }
             }
         });
+        */
         updatePlaces();
+        updateAlarm();
 
     }
 
@@ -435,6 +475,26 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         */
 
     }
+
+    private void updateAlarm() {
+
+        AlarmManager alarmMgr;
+        PendingIntent alarmIntent;
+
+        alarmMgr = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        alarmIntent = PendingIntent.getActivity(getApplicationContext(), ALARM_ARRIVED , intent, 0);
+
+        alarmMgr.cancel(alarmIntent);
+
+        long t = getTimeForNextEvent(driverDetail);
+        if (t > 0 ) {
+            alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + t, alarmIntent);
+        }
+
+    }
+
     /*
   * Displays a circle on the map representing the search radius
   */
@@ -463,6 +523,40 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         mapFragment.getMap().animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 5));
     }
 
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == ALARM_ARRIVED && resultCode == RESULT_OK) {
+
+            if (driverDetail != null) {
+                long l = getTimeForNextEvent(driverDetail);
+            }
+            switch (state) {
+                case STATE_WAITING:
+                    break;
+
+                case STATE_ONTRAVEL:
+                    locationClient.connect();
+                    break;
+
+                case STATE_FINISHED:
+                    if (locationClient.isConnected()) {
+                        stopPeriodicUpdates();
+                    }
+
+                    // After disconnect() is called, the client is considered "dead".
+                    locationClient.disconnect();
+
+                    break;
+                default:
+            }
+
+            updateAlarm();
+            Log.d(TAG, "alarm received!!");
+
+        }
+    }
 
     /*
  * In response to a request to start updates, send a request to Location Services
@@ -641,7 +735,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         currentLocation = location;
         count++;
 
-        txtState.setText("count = " + count);
+        txtGeoEvent.setText("count = " + count);
 
         /* Publish a simple message to the channel */
         JSONObject message = new JSONObject();

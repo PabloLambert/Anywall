@@ -249,7 +249,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       public void onClick(View view) {
 
         try {
-          pubnub.subscribe(spinnerDriver.getSelectedItem().toString(), subscribeCallback);
+          //pubnub.subscribe(spinnerDriver.getSelectedItem().toString(), subscribeCallback);
+          pubnub.subscribe("xCoXRDQo96", subscribeCallback);
           Log.d(TAG, "Subscribed to Channel");
         } catch (PubnubException e) {
           Log.e(TAG, e.toString());
