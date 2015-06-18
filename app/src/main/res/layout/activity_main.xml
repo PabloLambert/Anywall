@@ -52,7 +52,7 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="Próxmo viaje  : "
             android:id="@+id/textView3"
@@ -70,14 +70,31 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Count :"
+            android:id="@+id/textView5" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtCount" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="Select Driver:"
             android:id="@+id/textDrivers" />
 
         <Spinner
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
             android:id="@+id/spinnerDriver" />
     </LinearLayout>
 
@@ -88,10 +105,17 @@
         android:weightSum="1">
 
         <Button
-            android:layout_width="71dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Subscribe"
             android:id="@+id/btnSubscribe"
+            android:layout_weight="0.15" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unsubscribe"
+            android:id="@+id/btnUnsubscribe"
             android:layout_weight="0.15" />
 
     </LinearLayout>

@@ -189,20 +189,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             }
         });
 
-
-        txtChannel = (TextView) findViewById(R.id.txtChannel);
-        txtChannel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (driverDetail != null ) {
-                    txtChannel.setText(driverDetail.getChannel());
-                } else {
-                    txtChannel.setText("  ");
-                }
-            }
-        });
-
-        btnStart = (Button) findViewById(R.id.btnStart);
+       btnStart = (Button) findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -225,60 +212,84 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         });
 
         txtState = (TextView)findViewById(R.id.txtState);
-        txtState.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (driverDetail != null) {
-                    long l = getTimeForNextEvent(driverDetail);
-                }
-                String sName;
-                switch (state) {
-                    case STATE_WAITING:
-                        sName = "STATE_WAITING";
-                        break;
-                    case STATE_ONTRAVEL:
-                        sName = "STATE_ONTRAVEL";
-                        break;
-                    case STATE_FINISHED:
-                        sName = "STATE_FINISHED";
-                        break;
-                    default:
-                        sName = "Undefined";
-                }
-                txtState.setText(sName);
-            }
-        });
 
         txtNextEvent = (TextView) findViewById(R.id.txtNextEvent);
-        txtNextEvent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (driverDetail != null) {
-                    long l = getTimeForNextEvent(driverDetail);
-                    long min = l/(60*1000);
-                    long sec = (l%(60*1000))/1000;
-                    txtNextEvent.setText( min + " [min] " + sec + " [sec]" );
-                }
-            }
-        });
+
+        txtChannel = (TextView) findViewById(R.id.txtChannel);
+
         txtGeoEvent = (TextView) findViewById(R.id.txtGeoEvents);
 
         btnCount = (Button) findViewById(R.id.btnCount);
-        btnCount.setOnClickListener(new View.OnClickListener() {
+
+        Thread t = new Thread() {
             @Override
-            public void onClick(View view) {
+            public void run() {
                 try {
-                    if (currentLocation != null )
-                        txtGeoEvent.setText("CurrentLocation = " + currentLocation.toString());
+                    while(!isInterrupted()) {
+                        Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateGUI();
+                            }
+                        });
 
-                } catch ( Exception e) {
-                    Log.e(TAG, "error");
+                    }
+
+                } catch (Exception e) {
+
                 }
-
             }
-        });
+
+        };
+
+        t.start();
+    }
+
+    public void updateGUI() {
+
+
+        // State
+        if (driverDetail != null) {
+            long l = getTimeForNextEvent(driverDetail);
+        }
+        String sName;
+        switch (state) {
+            case STATE_WAITING:
+                sName = "STATE_WAITING";
+                break;
+            case STATE_ONTRAVEL:
+                sName = "STATE_ONTRAVEL";
+                break;
+            case STATE_FINISHED:
+                sName = "STATE_FINISHED";
+                break;
+            default:
+                sName = "Undefined";
+        }
+        txtState.setText(sName);
+
+        // NextEvent
+        if (driverDetail != null) {
+            long l = getTimeForNextEvent(driverDetail);
+            long min = l/(60*1000);
+            long sec = (l%(60*1000))/1000;
+            txtNextEvent.setText( min + " [min] " + sec + " [sec]" );
+        }
+
+        // Channel
+        if (driverDetail != null ) {
+            txtChannel.setText(driverDetail.getChannel());
+        } else {
+            txtChannel.setText("  ");
+        }
+
+        txtGeoEvent.setText("count = " + count);
 
     }
+
+
+
 
 
     public long getTimeForNextEvent(DriverDetail driverDetail) {
@@ -735,7 +746,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         currentLocation = location;
         count++;
 
-        txtGeoEvent.setText("count = " + count);
 
         /* Publish a simple message to the channel */
         JSONObject message = new JSONObject();
@@ -743,6 +753,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             message.put("lat", location.getLatitude());
             message.put("lng", location.getLongitude());
             message.put("alt", location.getAltitude());
+            message.put("count", count);
         } catch (JSONException e) {
             Log.e(TAG, e.toString());
         }

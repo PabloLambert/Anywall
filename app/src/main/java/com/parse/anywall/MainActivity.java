@@ -149,10 +149,10 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private ImageButton btnAddPlace, btnAddStudent;
   private LinearLayout llPlaces, llStudents;
-  private TextView textStatus, textDrivers;
-  private Button btnSubscribe;
+  private TextView textStatus, textDrivers, textCount;
+  private Button btnSubscribe, btnUnsubscribe;
   private Spinner spinnerDriver;
-  private int countPlaces = 0, countStudents = 0;
+  private int countPlaces = 0, countStudents = 0, countEvents = 0;
 
   private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
   public static Map<String, Places> mapPlaces = new HashMap<String, Places>();
@@ -216,6 +216,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       }
     });
 
+    textCount = (TextView) findViewById(R.id.txtCount);
+
     spinnerDriver = (Spinner) findViewById(R.id.spinnerDriver);
     textDrivers = (TextView) findViewById(R.id.textDrivers);
     textDrivers.setOnClickListener(new OnClickListener() {
@@ -249,8 +251,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       public void onClick(View view) {
 
         try {
-          //pubnub.subscribe(spinnerDriver.getSelectedItem().toString(), subscribeCallback);
-          pubnub.subscribe("xCoXRDQo96", subscribeCallback);
+          pubnub.subscribe(spinnerDriver.getSelectedItem().toString(), subscribeCallback);
+          //pubnub.subscribe("xCoXRDQo96", subscribeCallback);
           Log.d(TAG, "Subscribed to Channel");
         } catch (PubnubException e) {
           Log.e(TAG, e.toString());
@@ -259,9 +261,53 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       }
     });
 
+    btnUnsubscribe = (Button) findViewById(R.id.btnUnsubscribe);
+    btnUnsubscribe.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        try {
+          pubnub.unsubscribe(spinnerDriver.getSelectedItem().toString());
+          Log.d(TAG, "Unsubscribed to Channel");
+
+        } catch (Exception e ) {
+          Log.e(TAG, e.toString());
+
+        }
+      }
+    });
+
+    Thread t = new Thread() {
+      @Override
+      public void run() {
+        try {
+          while(!isInterrupted()) {
+            Thread.sleep(1000);
+            runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                updateGUI();
+              }
+            });
+
+          }
+
+        } catch (Exception e) {
+
+        }
+      }
+
+    };
+
+    t.start();
+
   }
 
 
+  public void updateGUI() {
+
+    textCount.setText(" " + countEvents);
+
+  }
 
   /*
    * Called when the Activity is no longer visible at all. Stop updates and disconnect.
@@ -322,6 +368,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     doPlacesQuery();
     doStudentQuery();
     doSchoolQuery();
+    doDriverDetailQuery();
   }
 
   /*
@@ -661,6 +708,24 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   }
 
+  private void doDriverDetailQuery() {
+
+    ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
+    query.findInBackground(new FindCallback<DriverDetail>() {
+      @Override
+      public void done(List<DriverDetail> list, ParseException e) {
+        if (e != null) {
+          Toast.makeText(getApplicationContext(), "Error en obtener DriverDetail", Toast.LENGTH_SHORT).show();
+        } else {
+          for (DriverDetail d : list) {
+            mapDriverDetails.put(d.getObjectId(), d);
+          }
+        }
+      }
+    });
+
+  }
+
   private void updateStatus() {
     Calendar now = Calendar.getInstance();
 
@@ -863,6 +928,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       try {
         double mLat = jsonMessage.getDouble("lat");
         double mLng = jsonMessage.getDouble("lng");
+        countEvents = jsonMessage.getInt("count");
         mLatLng = new LatLng(mLat, mLng);
       } catch (JSONException e) {
         Log.e(TAG, e.toString());
@@ -878,6 +944,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
           // Update map radius indicator
           updateCircle(mLatLng);
 
+          //textCount.setText(countEvents);
 
         }
       });

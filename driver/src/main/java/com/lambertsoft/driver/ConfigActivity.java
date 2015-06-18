@@ -325,6 +325,7 @@ public class ConfigActivity extends Activity {
         driverDetail.setToMinutes(toMinutes);
 
         ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
+        acl.setPublicReadAccess(true);
         driverDetail.setACL(acl);
 
         driverDetail.saveInBackground(new SaveCallback() {
