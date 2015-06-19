@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -49,7 +50,8 @@ public class ConfigActivity extends Activity {
     final static public int DEFAULT_MINUTES = c.get(Calendar.MINUTE);
 
     private ImageView imgDriver, imgSchool, imgPlaces;
-    private TextView textDriverName, textSchoolName;
+    private TextView textSchoolName;
+    private EditText textDriverAlias;
     ImageButton btnFromTimePicker;
     private TextView textFrom_InitDate, textFrom_EndDate;
 
@@ -71,7 +73,7 @@ public class ConfigActivity extends Activity {
         setContentView(R.layout.activity_config);
 
         imgDriver = (ImageView) findViewById(R.id.imgDriver);
-        textDriverName = (TextView) findViewById(R.id.textDriverName);
+        textDriverAlias = (EditText) findViewById(R.id.textDriverAlias);
         textSchoolName = (TextView) findViewById(R.id.textSchoolName);
 
         textFrom_InitDate = (TextView) findViewById(R.id.textFrom_InitDate);
@@ -203,6 +205,7 @@ public class ConfigActivity extends Activity {
 
             } else {
                 driverDetail = new DriverDetail();
+                driverDetail.setAlias("Tio");
                 driverDetail.setChannel(ParseUser.getCurrentUser().getObjectId());
                 Collection<School> collSchool = MainActivity.mapSchool.values();
                 actualSchool = collSchool.iterator().next();
@@ -237,7 +240,7 @@ public class ConfigActivity extends Activity {
 
     public void show() {
 
-        textDriverName.setText(ParseUser.getCurrentUser().getUsername().toString());
+        textDriverAlias.setText(driverDetail.getAlias());
         if (driverDetail.getSchool() != null ) {
             School school = MainActivity.mapSchool.get(driverDetail.getSchool().getObjectId());
             textSchoolName.setText(school.getName());
@@ -293,6 +296,7 @@ public class ConfigActivity extends Activity {
         dialog.setMessage("Guardando configuración");
         dialog.show();
 
+        driverDetail.setAlias(textDriverAlias.getText().toString());
         driverDetail.setChannel(driverDetail.getObjectId());
         String sObj = (String) textSchoolName.getTag();
         if (sObj != null ) {
@@ -332,7 +336,12 @@ public class ConfigActivity extends Activity {
             @Override
             public void done(ParseException e) {
                 dialog.dismiss();
-                finish();
+
+                if ( e != null ) {
+                    Toast.makeText(getApplicationContext(), "Error: " +e.toString(), Toast.LENGTH_SHORT).show();
+                } else {
+                    finish();
+                }
             }
         });
     }

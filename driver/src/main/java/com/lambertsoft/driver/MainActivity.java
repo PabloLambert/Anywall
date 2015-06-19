@@ -350,6 +350,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     @Override
     public void onStop() {
+
         // If the client is connected
         if (locationClient.isConnected()) {
             //stopPeriodicUpdates();
@@ -370,8 +371,10 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     public void onStart() {
         super.onStart();
 
-        // Connect to the location services client
-        //locationClient.connect();
+        if ( evt.state == STATE_ONTRAVEL) {
+            // Connect to the location services client
+            locationClient.connect();
+        }
     }
 
 
@@ -412,11 +415,13 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
             } else {
                     driverDetail = new DriverDetail();
+                /*
                     ParseUser user = ParseUser.getCurrentUser();
                     ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
                     driverDetail.setChannel(user.getSessionToken());
                     driverDetail.setACL(acl);
                     driverDetail.save();
+                    */
             }
 
             ParseQuery<School> querySchool = ParseQuery.getQuery("School");
@@ -770,6 +775,9 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     @Override
     public void onLocationChanged(Location location) {
+
+        if (driverDetail == null ) return;
+
         currentLocation = location;
         count++;
 

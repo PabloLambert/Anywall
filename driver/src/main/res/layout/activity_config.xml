@@ -39,11 +39,10 @@
                     android:text="Nombre :"
                     android:id="@+id/textView2" />
 
-                <TextView
+                <EditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/textDriverName"
-                    android:text="    " />
+                    android:id="@+id/textDriverAlias" />
             </LinearLayout>
 
             <LinearLayout
