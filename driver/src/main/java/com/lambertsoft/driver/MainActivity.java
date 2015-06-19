@@ -6,7 +6,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
@@ -35,7 +34,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.lambertsoft.base.DriverDetail;
 import com.lambertsoft.base.Places;
 import com.lambertsoft.base.School;
-import com.parse.FindCallback;
 import com.parse.ParseACL;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
@@ -143,7 +141,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     JSONObject obj;
 
     DriverDetail driverDetail;
-    private int state = STATE_WAITING;
+    Evt evt = new Evt(-1, -1 );
 
     private int countSchool = 0;
     public static Map<String, School> mapSchool = new HashMap<String, School>();
@@ -230,7 +228,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                updateGUI();
+                                updateStatus();
                             }
                         });
 
@@ -246,43 +244,37 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         t.start();
     }
 
-    public void updateGUI() {
+    public void updateStatus() {
 
+        if (driverDetail == null) {
+            return;
+        }
 
-        // State
-        if (driverDetail != null) {
-            long l = getTimeForNextEvent(driverDetail);
+        Evt newEvt = getTimeForNextEvent(driverDetail);
+
+        if (evt.state == STATE_WAITING && newEvt.state == STATE_ONTRAVEL) {
+            Log.d(TAG, "From Waiting to OnTravel");
+            locationClient.connect();
+        } else if (evt.state == STATE_ONTRAVEL && newEvt.state == STATE_FINISHED) {
+            Log.d(TAG, "From OnTravel to Finish");
+            // If the client is connected
+            if (locationClient.isConnected()) {
+                stopPeriodicUpdates();
+            }
+            locationClient.disconnect();
         }
-        String sName;
-        switch (state) {
-            case STATE_WAITING:
-                sName = "STATE_WAITING";
-                break;
-            case STATE_ONTRAVEL:
-                sName = "STATE_ONTRAVEL";
-                break;
-            case STATE_FINISHED:
-                sName = "STATE_FINISHED";
-                break;
-            default:
-                sName = "Undefined";
-        }
-        txtState.setText(sName);
+        evt = newEvt;
+
+        //Update UI
+        txtState.setText(evt.getStateName());
 
         // NextEvent
-        if (driverDetail != null) {
-            long l = getTimeForNextEvent(driverDetail);
-            long min = l/(60*1000);
-            long sec = (l%(60*1000))/1000;
-            txtNextEvent.setText( min + " [min] " + sec + " [sec]" );
-        }
+        long min = evt.t/(60*1000);
+        long sec = (evt.t%(60*1000))/1000;
+        txtNextEvent.setText( min + " [min] " + sec + " [sec]" );
 
         // Channel
-        if (driverDetail != null ) {
-            txtChannel.setText(driverDetail.getChannel());
-        } else {
-            txtChannel.setText("  ");
-        }
+        txtChannel.setText(driverDetail.getChannel());
 
         txtGeoEvent.setText("count = " + count);
 
@@ -292,7 +284,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
 
 
-    public long getTimeForNextEvent(DriverDetail driverDetail) {
+    public Evt getTimeForNextEvent(DriverDetail driverDetail) {
         Calendar fromInit = Calendar.getInstance();
         fromInit.set(Calendar.HOUR_OF_DAY, driverDetail.getFromInitHourOfDay());
         fromInit.set(Calendar.MINUTE, driverDetail.getFromInitMinutes());
@@ -306,21 +298,51 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         long fromEndMinutes = fromEnd.getTimeInMillis();
 
         long rightNow = Calendar.getInstance().getTimeInMillis();
+        Evt evt;
 
         if (rightNow < fromInitMinutes ) {
-            state = STATE_WAITING;
-            return ( fromInitMinutes - rightNow);
+            evt = new Evt( fromInitMinutes - rightNow, STATE_WAITING);
+            return evt;
         } else if ((rightNow >= fromInitMinutes ) &&  (rightNow < fromEndMinutes) ) {
-            state = STATE_ONTRAVEL;
-            return (fromEndMinutes - rightNow);
+            evt = new Evt( fromEndMinutes - rightNow, STATE_ONTRAVEL);
+            return evt;
         } else if  ( rightNow >= fromEndMinutes ) {
-            state = STATE_FINISHED;
-            return 0;
+            evt = new Evt( 0, STATE_FINISHED);
+            return evt;
         }
-        return -1;
+        return evt = new Evt(-1,-1);
 
     }
 
+    private class Evt {
+        long t;
+        int state;
+
+        public Evt(long _t, int _state) {
+            t = _t;
+            state = _state;
+        }
+
+        public String getStateName() {
+
+            String sName;
+            switch (state) {
+                case STATE_WAITING:
+                    sName = "STATE_WAITING";
+                    break;
+                case STATE_ONTRAVEL:
+                    sName = "STATE_ONTRAVEL";
+                    break;
+                case STATE_FINISHED:
+                    sName = "STATE_FINISHED";
+                    break;
+                default:
+                    sName = "Undefined";
+            }
+            return sName;
+        }
+
+    }
 
     /*
   * Called when the Activity is no longer visible at all. Stop updates and disconnect.
@@ -451,7 +473,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         });
         */
         updatePlaces();
-        updateAlarm();
+        //updateAlarm();
 
     }
 
@@ -487,6 +509,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     }
 
+    /*
     private void updateAlarm() {
 
         AlarmManager alarmMgr;
@@ -494,6 +517,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
         alarmMgr = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_CLEAR_TOP);
         alarmIntent = PendingIntent.getActivity(getApplicationContext(), ALARM_ARRIVED , intent, 0);
 
         alarmMgr.cancel(alarmIntent);
@@ -505,6 +529,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         }
 
     }
+    */
 
     /*
   * Displays a circle on the map representing the search radius
@@ -536,6 +561,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
 
 
+    /*
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == ALARM_ARRIVED && resultCode == RESULT_OK) {
@@ -568,6 +594,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
         }
     }
+    */
 
     /*
  * In response to a request to start updates, send a request to Location Services
