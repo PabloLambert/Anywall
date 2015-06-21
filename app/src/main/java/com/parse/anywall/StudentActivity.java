@@ -48,31 +48,38 @@ import java.util.Map;
 public class StudentActivity extends FragmentActivity {
 
   final static public String TAG = StudentActivity.class.getSimpleName();
+
+  final static public int REQUEST_IMAGE_CAPTURE = 0;
+  final static public int REQUEST_SCHOOL_OBJECT = 1;
+  final static public int REQUEST_PLACES_OBJECT = 2;
+
+  final static public Calendar c = Calendar.getInstance();
+  final static public int DEFAULT_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
+  final static public int DEFAULT_MINUTES = c.get(Calendar.MINUTE);
+
   final static public String STUDENT_ACTION = "STUDENT_ACTION";
   final static public String STUDENT_OBJECT_ID = "STUDENT_OBJECT";
   final static public int STUDENT_ACTION_CREATE = 1;
   final static public int STUDENT_ACTION_MODIFY = 2;
-  final static public Calendar c = Calendar.getInstance();
-  final static public int DEFAULT_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
-  final static public int DEFAULT_MINUTES = c.get(Calendar.MINUTE);
-  final static public int REQUEST_IMAGE_CAPTURE = 0;
 
+  ImageView imgStudent;
   EditText textStudentName;
+  TextView textSchoolName;
+  TextView textFrom_InitDate, textFrom_EndDate;
+  ImageView imgSchool, imgPlaces;
   Button btnStudentAction, btnStudentDelete;
 
-  TextView textFromDate, textToDate;
-  Spinner spinnerFromTime, spinnerToTime, spinnerSchool;
-  ImageButton btnFromTimePicker, btnToTimePicker;
-  ImageView imgStudent;
   Bitmap bitmap;
-  int fromHourDay = DEFAULT_HOUR_DAY, fromMinutes = DEFAULT_MINUTES;
-  int toHourDay = DEFAULT_HOUR_DAY, toMinutes = DEFAULT_MINUTES;
 
   int action;
   Student student;
-  Travel travel;
-  ArrayList<String> placesList, schoolList;
-  public static Map<String, School> mapSchool = new HashMap<String, School>();
+  School actualSchool;
+  Places actualPlaces;
+
+  int fromInitHourDay = DEFAULT_HOUR_DAY, fromInitMinutes = DEFAULT_MINUTES;
+  int fromEndHourDay = DEFAULT_HOUR_DAY, fromEndMinutes = DEFAULT_MINUTES+30;
+  int toHourDay = DEFAULT_HOUR_DAY, toMinutes = DEFAULT_MINUTES;
+
 
 
   @Override
@@ -80,19 +87,31 @@ public class StudentActivity extends FragmentActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_student);
 
+    // Get configutation
+    imgStudent = (ImageView) findViewById(R.id.imgStudent);
     textStudentName = (EditText) findViewById(R.id.textStudentName);
+    textSchoolName = (TextView) findViewById(R.id.textSchoolName);
+
+    textFrom_InitDate = (TextView) findViewById(R.id.textFrom_InitDate);
+    textFrom_EndDate = (TextView) findViewById(R.id.textFrom_EndDate);
+
+    imgSchool = (ImageView) findViewById(R.id.imgSchool);
+    imgPlaces = (ImageView) findViewById(R.id.imgPlaces);
+
     btnStudentAction = (Button) findViewById(R.id.btnStudentAction);
     btnStudentDelete = (Button) findViewById(R.id.btnStudentDelete);
-    imgStudent = (ImageView) findViewById(R.id.imgStudent);
 
-    spinnerFromTime = (Spinner) findViewById(R.id.spinnerFromPlace);
-    textFromDate = (TextView) findViewById(R.id.textFromDate);
-    btnFromTimePicker = (ImageButton) findViewById(R.id.btnFromTimePicker);
-    spinnerToTime = (Spinner) findViewById(R.id.spinnerToPlace);
-    textToDate = (TextView) findViewById(R.id.textToDate);
-    btnToTimePicker = (ImageButton) findViewById(R.id.btnToTimePicker);
-    spinnerSchool = (Spinner) findViewById(R.id.spinnerSchool);
 
+    // Add actions
+    imgStudent.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+          startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+      }
+    });
 
     textStudentName.addTextChangedListener(new TextWatcher() {
       @Override
@@ -112,52 +131,82 @@ public class StudentActivity extends FragmentActivity {
       }
     });
 
-    placesList = new ArrayList<String>();
-    for (Iterator<Places> iterator = MainActivity.mapPlaces.values().iterator(); iterator.hasNext(); ){
-      Places _p = iterator.next();
-      placesList.add(_p.getName());
-    }
-
-    ArrayAdapter<String> adapterFrom = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, placesList);
-    spinnerFromTime.setAdapter(adapterFrom);
-
-    textFromDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
-    final TimePickerDialog timePickerFrom = new TimePickerDialog(StudentActivity.this, new TimePickerDialog.OnTimeSetListener() {
-      @Override
-      public void onTimeSet(TimePicker timePicker, int i, int i1) {
-        fromHourDay = i;
-        fromMinutes = i1;
-        textFromDate.setText(showTime(fromHourDay, fromMinutes));
-      }
-    },0,0,false);
-
-    btnFromTimePicker.setOnClickListener(new View.OnClickListener() {
+    textSchoolName.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        timePickerFrom.updateTime(fromHourDay, fromMinutes);
-        timePickerFrom.show();
+        Intent intent = new Intent(StudentActivity.this, SchoolListActivity.class);
+        if (actualSchool != null) {
+          intent.putExtra(SchoolListActivity.SCHOOL_OBJECT_ID, actualSchool.getObjectId());
+        }
+        startActivityForResult(intent, REQUEST_SCHOOL_OBJECT);
       }
     });
 
-    ArrayAdapter<String> adapterTo = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, placesList);
-    spinnerToTime.setAdapter(adapterTo);
 
-    textToDate.setText(showTime(toHourDay, toMinutes));
-    final TimePickerDialog timePickerTo = new TimePickerDialog(StudentActivity.this, new TimePickerDialog.OnTimeSetListener() {
+    textFrom_InitDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
+    final TimePickerDialog timePickerFromInit = new TimePickerDialog(StudentActivity.this, new TimePickerDialog.OnTimeSetListener() {
       @Override
       public void onTimeSet(TimePicker timePicker, int i, int i1) {
-        toHourDay = i;
-        toMinutes = i1;
-        textToDate.setText(showTime(toHourDay, toMinutes));
+        fromInitHourDay = i;
+        fromInitMinutes = i1;
+        textFrom_InitDate.setText(showTime(fromInitHourDay, fromInitMinutes));
       }
     },0,0,false);
-    btnToTimePicker.setOnClickListener(new View.OnClickListener() {
+
+    textFrom_InitDate.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        timePickerTo.updateTime(toHourDay, toMinutes);
-        timePickerTo.show();
+        timePickerFromInit.updateTime(fromInitHourDay, fromInitMinutes);
+        timePickerFromInit.show();
       }
     });
+
+    textFrom_EndDate.setText(showTime(DEFAULT_HOUR_DAY, DEFAULT_MINUTES));
+    final TimePickerDialog timePickerFromEnd = new TimePickerDialog(StudentActivity.this, new TimePickerDialog.OnTimeSetListener() {
+      @Override
+      public void onTimeSet(TimePicker timePicker, int i, int i1) {
+        fromEndHourDay = i;
+        fromEndMinutes = i1;
+        textFrom_EndDate.setText(showTime(fromEndHourDay, fromEndMinutes));
+      }
+    },0,0,false);
+
+    textFrom_EndDate.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        timePickerFromEnd.updateTime(fromEndHourDay, fromEndMinutes);
+        timePickerFromEnd.show();
+      }
+    });
+
+    imgSchool.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent intent = new Intent(StudentActivity.this, SchoolActivity.class);
+        if (actualSchool != null) {
+          intent.putExtra(SchoolActivity.SCHOOL_ACTION, SchoolActivity.SCHOOL_ACTION_VIEW);
+          intent.putExtra(SchoolActivity.SCHOOL_OBJECT_ID, actualSchool.getObjectId());
+          startActivity(intent);
+        }
+      }
+    });
+
+    imgPlaces.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent intent = new Intent(StudentActivity.this, PlacesActivity.class);
+        if (actualPlaces == null) {
+          intent.putExtra(PlacesActivity.PLACES_ACTION, PlacesActivity.PLACES_ACTION_CREATE);
+          startActivityForResult(intent, REQUEST_PLACES_OBJECT);
+        } else {
+          intent.putExtra(PlacesActivity.PLACES_ACTION, PlacesActivity.PLACES_ACTION_MODIFY);
+          intent.putExtra(PlacesActivity.PLACES_OBJECT_ID, actualPlaces.getObjectId());
+          startActivityForResult(intent, REQUEST_PLACES_OBJECT);
+        }
+      }
+    });
+
+
 
     btnStudentAction.setEnabled(false);
     btnStudentAction.setOnClickListener(new View.OnClickListener() {
@@ -166,31 +215,13 @@ public class StudentActivity extends FragmentActivity {
         saveData();
       }
     });
+
     btnStudentDelete.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         deleteData();
       }
     });
-
-    imgStudent.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-          startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        }
-      }
-    });
-
-    schoolList = new ArrayList<String>();
-    for (Iterator<School> iterator = MainActivity.mapSchool.values().iterator(); iterator.hasNext(); ){
-      School _s = iterator.next();
-      schoolList.add(_s.getName());
-    }
-
-    ArrayAdapter<String> adapterSchool = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, schoolList);
-    spinnerSchool.setAdapter(adapterSchool);
 
 
     Intent intent = getIntent();
@@ -206,28 +237,31 @@ public class StudentActivity extends FragmentActivity {
       student = MainActivity.mapStudent.get(intent.getStringExtra(STUDENT_OBJECT_ID));
 
       textStudentName.setText(student.getName());
-      List<Travel> travels = student.getTravels();
-      if (travels.size() > 0 ) {
-        travel = travels.get(0);
-        Places fromPlaces = MainActivity.mapPlaces.get(travel.getFromPlace().getObjectId());
-        Places toPlaces = MainActivity.mapPlaces.get(travel.getToPlace().getObjectId());
+      if (student.getSchool() != null ) {
+        School school = MainActivity.mapSchool.get(student.getSchool().getObjectId());
+        actualSchool = school;
+        textSchoolName.setText(school.getName());
+        textSchoolName.setTag(school.getObjectId());
+      }
 
-        for (int i=0; i < placesList.size(); i++) {
-          if (placesList.get(i).compareTo(fromPlaces.getName()) == 0 )
-            spinnerFromTime.setSelection(i);
+      if (student.getPlaces() != null ) {
+        String placesObjId = student.getPlaces().getObjectId();
+        if (placesObjId != null )
+          actualPlaces = MainActivity.mapPlaces.get(placesObjId);
+      }
 
-          if (placesList.get(i).compareTo(toPlaces.getName()) == 0 )
-            spinnerToTime.setSelection(i);
-        }
+      fromInitHourDay = student.getFromInitHourOfDay();
+      fromInitMinutes = student.getFromInitMinutes();
+      textFrom_InitDate.setText(showTime(fromInitHourDay, fromInitMinutes));
 
-        fromHourDay = travel.getFromHourOfDay();
-        fromMinutes = travel.getFromMinutes();
-        textFromDate.setText(showTime(fromHourDay, fromMinutes));
-        toHourDay = travel.getToHourOfDay();
-        toMinutes = travel.getToMinutes();
-        textToDate.setText(showTime(toHourDay, toMinutes));
+      fromEndHourDay = student.getFromEndHourOfDay();
+      fromEndMinutes = student.getFromEndMinutes();
+      textFrom_EndDate.setText(showTime(fromEndHourDay, fromEndMinutes));
 
-        ParseFile file = student.getPhoto();
+      toHourDay = student.getToHourOfDay();
+      toMinutes = student.getToMinutes();
+
+      ParseFile file = student.getPhoto();
         if (file != null ) {
 
           file.getDataInBackground(new GetDataCallback() {
@@ -239,11 +273,6 @@ public class StudentActivity extends FragmentActivity {
             }
           });
         }
-
-      } else {
-        Log.e(TAG, "no travel asociated to student");
-      }
-
 
 
     } else {
@@ -259,6 +288,15 @@ public class StudentActivity extends FragmentActivity {
       Bundle extras = data.getExtras();
       bitmap = (Bitmap) extras.get("data");
       imgStudent.setImageBitmap(bitmap);
+    }  else if (requestCode == REQUEST_SCHOOL_OBJECT && resultCode == RESULT_OK) {
+      String sObjId = data.getStringExtra(SchoolListActivity.SCHOOL_OBJECT_ID);
+      actualSchool = MainActivity.mapSchool.get(sObjId);
+      textSchoolName.setText(actualSchool.getName());
+      textSchoolName.setTag(actualSchool.getObjectId());
+    } else if (requestCode == REQUEST_PLACES_OBJECT && resultCode == RESULT_OK) {
+      String sObjId = data.getStringExtra(PlacesActivity.PLACES_OBJECT_ID);
+      actualPlaces = MainActivity.mapPlaces.get(sObjId);
+      Log.d(TAG, "actualPlaces = " + actualPlaces.getName());
     }
   }
 
@@ -290,15 +328,11 @@ public class StudentActivity extends FragmentActivity {
     if ( action == STUDENT_ACTION_CREATE) {
       // Create a Student.
       s = new Student();
-      List<Travel> travels = new ArrayList<Travel>();
-      tmpTravel = new Travel();
-      travels.add(tmpTravel);
-      s.setTravels(travels);
+
 
     } else if (action == STUDENT_ACTION_MODIFY) {
       // Using existing place
       s = student;
-      tmpTravel = travel;
     } else {
       Toast.makeText(getApplicationContext(), "Error in saveData", Toast.LENGTH_SHORT).show();
       return;
@@ -313,13 +347,6 @@ public class StudentActivity extends FragmentActivity {
     ParseACL acl = new ParseACL(user);
 
     s.setName(name);
-    tmpTravel.setFromPlace(getPlaceFromMap(spinnerFromTime.getSelectedItem().toString()));
-    tmpTravel.setFromHourOfDay(fromHourDay);
-    tmpTravel.setFromMinutes(fromMinutes);
-
-    tmpTravel.setToPlace(getPlaceFromMap(spinnerToTime.getSelectedItem().toString()));
-    tmpTravel.setToHourOfDay(toHourDay);
-    tmpTravel.setToMinutes(toMinutes);
 
     if ( bitmap != null ) {
       // Convert it to byte
@@ -335,7 +362,22 @@ public class StudentActivity extends FragmentActivity {
       s.setPhoto(file);
     }
 
-      tmpTravel.setACL(acl);
+    String sObj = (String) textSchoolName.getTag();
+    if (sObj != null ) {
+      s.setSchool(MainActivity.mapSchool.get(sObj));
+    } else {
+      Toast.makeText(getApplicationContext(), "Error en Schoolname", Toast.LENGTH_SHORT).show();
+    }
+
+    if (actualPlaces != null )
+      s.setPlaces(actualPlaces);
+
+    s.setFromInitHourOfDay(fromInitHourDay);
+    s.setFromInitMinutes(fromInitMinutes);
+    s.setFromEndHourOfDay(fromEndHourDay);
+    s.setFromEndMinutes(fromEndMinutes);
+    s.setToHourOfDay(toHourDay);
+    s.setToMinutes(toMinutes);
 
     s.setACL(acl);
     s.saveInBackground(new SaveCallback() {
@@ -353,11 +395,6 @@ public class StudentActivity extends FragmentActivity {
     final ProgressDialog dialog = new ProgressDialog(StudentActivity.this);
     dialog.setMessage("Eliminando Estudiante");
     dialog.show();
-
-    List<Travel> travels = student.getTravels();
-    for (Travel tmpTravel: travels) {
-      tmpTravel.deleteInBackground();
-    }
 
     student.deleteInBackground(new DeleteCallback() {
       @Override

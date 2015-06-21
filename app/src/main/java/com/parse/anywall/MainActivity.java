@@ -365,11 +365,45 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     mapFragment.getMap().clear();
     mapMarkers2.clear();
 
-    doPlacesQuery();
+    //doPlacesQuery();
     doStudentQuery();
-    doSchoolQuery();
+    //doSchoolQuery();
     doDriverDetailQuery();
+
+    try {
+
+      ParseQuery<School> querySchool = ParseQuery.getQuery("School");
+      List<School> sList = querySchool.find();
+      for (School s : sList) {
+        mapSchool.put(s.getObjectId(), s);
+      }
+
+      updatePlaces();
+
+    } catch (ParseException e){
+      Toast.makeText(getApplicationContext(), "Error en onResume", Toast.LENGTH_SHORT).show();
+      Log.e(TAG, "Error en onResume" +e.toString());
+
+    }
+
+
   }
+
+
+  public static void updatePlaces() {
+
+    ParseQuery<Places> queryPlaces = ParseQuery.getQuery("Places");
+    try {
+      List<Places> list = queryPlaces.find();
+      for (Places p : list) {
+        mapPlaces.put(p.getObjectId(), p);
+      }
+
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+  }
+
 
   /*
    * Handle results returned to this Activity by other Activities started with
@@ -647,16 +681,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             addActionStudents(tmpButton);
             llStudents.addView(tmpButton, i);
 
-            //Get Travels associated with Student
-            List<Travel> travels = s.getTravels();
-            for (Travel t : travels) {
-              t.fetchIfNeededInBackground(new GetCallback<Travel>() {
-                @Override
-                public void done(Travel travel, ParseException e) {
-                  mapTravels.put(travel.getObjectId(), travel);
-                }
-              });
-            }
           }
         }
       }
@@ -733,25 +757,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     for (Iterator<Student> iterator = mapStudent.values().iterator(); iterator.hasNext(); ) {
       Student student = iterator.next();
-      List<Travel> travels = student.getTravels();
-      for (Travel tmpTravel : travels) {
-        Calendar beginTravel = Calendar.getInstance();
-        beginTravel.set(Calendar.HOUR_OF_DAY, tmpTravel.getFromHourOfDay());
-        beginTravel.set(Calendar.MINUTE, tmpTravel.getFromMinutes());
-
-        Calendar endTravel = Calendar.getInstance();
-        endTravel.set(Calendar.HOUR_OF_DAY, tmpTravel.getToHourOfDay());
-        endTravel.set(Calendar.MINUTE, tmpTravel.getToMinutes());
-
-        if (now.before(beginTravel)) {
-          long w = (beginTravel.getTimeInMillis() - now.getTimeInMillis()) / (1000*60);
-          textStatus.setText(student.getName() + " ...waiting for: " + w + " minutos");
-        } else if (now.after(endTravel)) {
-          textStatus.setText(student.getName() + " ...finalizado");
-        } else {
-          textStatus.setText(student.getName() + " en viaje");
-        }
-      }
 
     }
   }

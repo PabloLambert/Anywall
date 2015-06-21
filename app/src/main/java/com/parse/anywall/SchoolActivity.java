@@ -1,5 +1,6 @@
 package com.parse.anywall;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Address;
@@ -22,9 +23,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.lambertsoft.base.Places;
+import com.lambertsoft.base.School;
 import com.parse.DeleteCallback;
-import com.parse.ParseACL;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseUser;
@@ -33,13 +33,14 @@ import com.parse.SaveCallback;
 import java.io.IOException;
 import java.util.List;
 
+public class SchoolActivity extends FragmentActivity {
 
-public class PlacesActivity extends FragmentActivity {
+    final static public String SCHOOL_ACTION = "SCHOOL_ACTION";
+    final static public String SCHOOL_OBJECT_ID = "SCHOOL_OBJECT";
+    final static public int SCHOOL_ACTION_CREATE = 1;
+    final static public int SCHOOL_ACTION_MODIFY = 2;
+    final static public int SCHOOL_ACTION_VIEW = 3;
 
-    final static public String PLACES_ACTION = "PLACES_ACTION";
-    final static public String PLACES_OBJECT_ID = "PLACES_OBJECT";
-    final static public int PLACES_ACTION_CREATE = 1;
-    final static public int PLACES_ACTION_MODIFY = 2;
 
     EditText textPlaceName, textPlaceDirection;
     Button btnPlaceAction, btnPlaceDelete;
@@ -47,13 +48,14 @@ public class PlacesActivity extends FragmentActivity {
     GoogleMap googleMap;
     private ParseGeoPoint geoPoint;
     int action;
-    Places p;
+    School s;
+    boolean enableAction = false;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_places);
+        setContentView(R.layout.activity_school);
 
         textPlaceName = (EditText) findViewById(R.id.textPlaceName);
         textPlaceDirection = (EditText) findViewById(R.id.textPlanceDirection);
@@ -131,19 +133,31 @@ public class PlacesActivity extends FragmentActivity {
         googleMap = supportMapFragment.getMap();
 
         Intent intent = getIntent();
-        action = intent.getIntExtra(PLACES_ACTION, PLACES_ACTION_CREATE);
+        action = intent.getIntExtra(SCHOOL_ACTION, SCHOOL_ACTION_CREATE);
 
-        if (action == PLACES_ACTION_CREATE ) {
+        if (action == SCHOOL_ACTION_CREATE ) {
             btnPlaceAction.setText("Agregar");
+            enableAction = true;
             btnPlaceDelete.setEnabled(false);
-        } else if (action == PLACES_ACTION_MODIFY ) {
-            btnPlaceAction.setText("Modificar");
-            btnPlaceDelete.setEnabled(true);
-            p = MainActivity.mapPlaces.get(intent.getStringExtra(PLACES_OBJECT_ID));
-            textPlaceName.setText(p.getName());
-            textPlaceDirection.setText(p.getDirection());
-            new GeocoderTask().execute(p.getDirection());
 
+        } else if (action == SCHOOL_ACTION_MODIFY ) {
+            btnPlaceAction.setText("Modificar");
+            enableAction = true;
+            btnPlaceDelete.setEnabled(true);
+            s = MainActivity.mapSchool.get(intent.getStringExtra(SCHOOL_OBJECT_ID));
+            textPlaceName.setText(s.getName());
+            textPlaceDirection.setText(s.getAddress());
+            new GeocoderTask().execute(s.getAddress());
+        } else if ( action == SCHOOL_ACTION_VIEW ) {
+            btnPlaceAction.setText("Ver");
+            enableAction = false;
+            btnPlaceDelete.setEnabled(false);
+            s = MainActivity.mapSchool.get(intent.getStringExtra(SCHOOL_OBJECT_ID));
+            if (s != null ) {
+                textPlaceName.setText(s.getName());
+                textPlaceDirection.setText(s.getAddress());
+                new GeocoderTask().execute(s.getAddress());
+            }
         } else {
             Toast.makeText(getApplicationContext(), "Action Error", Toast.LENGTH_SHORT).show();
             return;
@@ -155,79 +169,60 @@ public class PlacesActivity extends FragmentActivity {
         int placeNameLength = textPlaceName.getText().toString().length();
         int placeDirectionLength = textPlaceDirection.getText().toString().length();
 
-        boolean enabled = placeDirectionLength > 0 && placeNameLength > 0 && geoPoint != null;
-
-        btnPlaceAction.setEnabled(enabled);
+        if (enableAction) {
+            boolean enabled = placeDirectionLength > 0 && placeNameLength > 0 && geoPoint != null;
+            btnPlaceAction.setEnabled(enabled);
+        }
     }
 
     public void saveData() {
 
         String name = textPlaceName.getText().toString().trim();
         String direction = textPlaceDirection.getText().toString().trim();
-        Places places;
+        School school;
 
-        if ( action == PLACES_ACTION_CREATE) {
+        if ( action == SCHOOL_ACTION_CREATE) {
             // Create a post.
-            places = new Places();
-            p = places;
-        } else if (action == PLACES_ACTION_MODIFY ) {
+            school = new School();
+        } else if (action == SCHOOL_ACTION_MODIFY ) {
             // Using existing place
-            places = p;
+            school = s;
         } else {
             Toast.makeText(getApplicationContext(), "Error in saveData", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Set up a progress dialog
-        final ProgressDialog dialog = new ProgressDialog(PlacesActivity.this);
-        dialog.setMessage("Guardando Lugar...");
+        final ProgressDialog dialog = new ProgressDialog(SchoolActivity.this);
+        dialog.setMessage("Guardando School...");
         dialog.show();
 
         // Set the location to the current user's location
-        places.setName(name);
-        places.setDirection(direction);
-        places.setLocation(geoPoint);
+        school.setName(name);
+        school.setAddress(direction);
+        school.setLocation(geoPoint);
 
         ParseUser user = ParseUser.getCurrentUser();
-        places.setACL(new ParseACL(user));
+        //school.setACL(new ParseACL(user));
 
-        try {
-            places.save();
-            Intent intent = new Intent();
-            intent.putExtra(PLACES_OBJECT_ID, places.getObjectId());
-            setResult(RESULT_OK, intent);
-            MainActivity.updatePlaces();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        dialog.dismiss();
-        finish();
-
-        /*
         // Save the Student
-        places.saveInBackground(new SaveCallback() {
+        school.saveInBackground(new SaveCallback() {
             @Override
             public void done(ParseException e) {
-                Intent intent = new Intent();
-                if (p != null )
-                    intent.putExtra(PLACES_OBJECT_ID, p.getObjectId());
-                setResult(RESULT_OK, intent);
-                MainActivity.updatePlaces();
                 dialog.dismiss();
                 finish();
             }
         });
-        */
 
 
     }
 
     public void deleteData() {
-        final ProgressDialog dialog = new ProgressDialog(PlacesActivity.this);
-        dialog.setMessage("Eliminando Lugar");
+        final ProgressDialog dialog = new ProgressDialog(SchoolActivity.this);
+        dialog.setMessage("Eliminando School");
         dialog.show();
 
-        p.deleteInBackground(new DeleteCallback() {
+        s.deleteInBackground(new DeleteCallback() {
             @Override
             public void done(ParseException e) {
                 dialog.dismiss();
@@ -239,7 +234,7 @@ public class PlacesActivity extends FragmentActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_places, menu);
+        getMenuInflater().inflate(R.menu.menu_school, menu);
         return true;
     }
 
@@ -309,6 +304,7 @@ public class PlacesActivity extends FragmentActivity {
                 // Locate the first location
                 if(i==0)
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+
             }
             updateButtonState();
         }

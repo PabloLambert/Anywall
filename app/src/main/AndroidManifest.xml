@@ -85,6 +85,14 @@
             android:name=".PlacesActivity"
             android:label="@string/title_activity_places" >
         </activity>
+        <activity
+            android:name=".SchoolListActivity"
+            android:label="@string/title_activity_school_list" >
+        </activity>
+        <activity
+            android:name=".SchoolActivity"
+            android:label="@string/title_activity_school" >
+        </activity>
     </application>
 
 </manifest>
