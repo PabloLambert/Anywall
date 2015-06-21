@@ -305,7 +305,7 @@ public class SchoolActivity extends FragmentActivity {
 
                 // Locate the first location
                 if(i==0)
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,5));
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,15));
 
             }
             updateButtonState();

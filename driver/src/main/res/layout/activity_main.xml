@@ -21,6 +21,12 @@
             android:text="Configurar"
             android:id="@+id/btnConfig" />
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Salir"
+            android:id="@+id/btnExit" />
+
     </LinearLayout>
 
     <LinearLayout

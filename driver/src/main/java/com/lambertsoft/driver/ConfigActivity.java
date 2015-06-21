@@ -210,9 +210,8 @@ public class ConfigActivity extends Activity {
                 Collection<School> collSchool = MainActivity.mapSchool.values();
                 actualSchool = collSchool.iterator().next();
                 driverDetail.setSchool(actualSchool);
-                Collection<Places> collPlaces = MainActivity.mapPlaces.values();
-                actualPlaces = collPlaces.iterator().next();
-                driverDetail.setPlaces(actualPlaces);
+                actualPlaces = null;
+                //driverDetail.setPlaces(actualPlaces);
                 driverDetail.setFromInitHourOfDay(fromInitHourDay);
                 driverDetail.setFromInitMinutes(fromInitMinutes);
                 driverDetail.setFromEndHourOfDay(fromEndHourDay);
@@ -297,7 +296,7 @@ public class ConfigActivity extends Activity {
         dialog.show();
 
         driverDetail.setAlias(textDriverAlias.getText().toString());
-        driverDetail.setChannel(driverDetail.getObjectId());
+        driverDetail.setChannel(ParseUser.getCurrentUser().getObjectId());
         String sObj = (String) textSchoolName.getTag();
         if (sObj != null ) {
             driverDetail.setSchool(MainActivity.mapSchool.get(sObj));
@@ -329,7 +328,6 @@ public class ConfigActivity extends Activity {
         driverDetail.setToMinutes(toMinutes);
 
         ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
-        acl.setPublicReadAccess(true);
         driverDetail.setACL(acl);
 
         driverDetail.saveInBackground(new SaveCallback() {

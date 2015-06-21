@@ -134,7 +134,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     // Stores the current instantiation of the location client in this object
     private LocationClient locationClient;
 
-    private Button btnStart, btnStop, btnCount, btnConfig;
+    private Button btnStart, btnStop, btnCount, btnConfig, btnExit;
     private TextView txtState, txtChannel, txtNextEvent, txtGeoEvent;
     private int count = 0;
     Pubnub pubnub = Application.pubnub;
@@ -184,6 +184,20 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        btnExit = (Button) findViewById(R.id.btnExit);
+        btnExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Call the Parse log out method
+                ParseUser.logOut();
+                // Start and intent for the dispatch activity
+                Intent intent = new Intent(MainActivity.this, DispatchActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
             }
         });
 
@@ -385,6 +399,32 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     protected void onResume() {
         super.onResume();
 
+        try {
+
+            ParseQuery<School> querySchool = ParseQuery.getQuery("School");
+            List<School> sList = querySchool.find();
+            for (School s : sList) {
+                mapSchool.put(s.getObjectId(), s);
+            }
+
+           updatePlaces();
+
+            ParseQuery<DriverDetail> queryDriver = ParseQuery.getQuery("DriverDetail");
+            List<DriverDetail> qList = queryDriver.find();
+            if (qList.size() > 0 ) {
+                driverDetail = qList.get(0);
+            } else {
+                Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
+                startActivity(intent);
+            }
+
+        } catch (ParseException e){
+            Toast.makeText(getApplicationContext(), "Error en onResume", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Error en onResume" +e.toString());
+
+        }
+
+
         // Get the latest search distance preference
         radius = 250.0f;
         // Checks the last saved location to show cached data if it's available
@@ -405,87 +445,12 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         mapFragment.getMap().clear();
         mapMarkers.clear();
 
-        try {
-
-            ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
-            List<DriverDetail> list = query.find();
-
-            if (list.size() > 0) {
-                    driverDetail = list.get(0);
-
-            } else {
-                    driverDetail = new DriverDetail();
-                /*
-                    ParseUser user = ParseUser.getCurrentUser();
-                    ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
-                    driverDetail.setChannel(user.getSessionToken());
-                    driverDetail.setACL(acl);
-                    driverDetail.save();
-                    */
-            }
-
-            ParseQuery<School> querySchool = ParseQuery.getQuery("School");
-            List<School> sList = querySchool.find();
-            for (School s : sList) {
-                mapSchool.put(s.getObjectId(), s);
-            }
-
-        } catch (ParseException e){
-            Toast.makeText(getApplicationContext(), "Error en obtener DriverDetail" + e.toString(), Toast.LENGTH_SHORT).show();
-
-        }
-
-
-        /*
-        ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
-        query.findInBackground(new FindCallback<DriverDetail>() {
-            @Override
-            public void done(List<DriverDetail> list, ParseException e) {
-                if (e != null) {
-
-                    Toast.makeText(getApplicationContext(), "Error en obtener DriverDetail" + e.toString(), Toast.LENGTH_SHORT).show();
-
-                } else {
-                    if (list.size() > 0) {
-                        driverDetail = list.get(0);
-
-                    } else {
-                        driverDetail = new DriverDetail();
-                        ParseUser user = ParseUser.getCurrentUser();
-                        ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
-                        driverDetail.setChannel(user.getSessionToken());
-                        driverDetail.setACL(acl);
-                        driverDetail.saveInBackground();
-                    }
-
-                }
-            }
-        });
-
-        ParseQuery<School> querySchool = ParseQuery.getQuery("School");
-        querySchool.findInBackground(new FindCallback<School>() {
-            @Override
-            public void done(List<School> list, ParseException e) {
-                if (e != null) {
-                    Toast.makeText(getApplicationContext(), "Error en obtener School" + e.toString(), Toast.LENGTH_SHORT).show();
-                } else {
-                    for (School s : list) {
-                        mapSchool.put(s.getObjectId(), s);
-                    }
-
-                }
-            }
-        });
-        */
-        updatePlaces();
-        //updateAlarm();
 
     }
 
     public static void updatePlaces() {
+
         ParseQuery<Places> queryPlaces = ParseQuery.getQuery("Places");
-
-
         try {
             List<Places> list = queryPlaces.find();
             for (Places p : list) {
@@ -495,46 +460,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-        /*
-        queryPlaces.findInBackground(new FindCallback<Places>() {
-            @Override
-            public void done(List<Places> list, ParseException e) {
-                if (e != null) {
-                    //Toast.makeText(this, "Error en obtener Places" + e.toString(), Toast.LENGTH_SHORT).show();
-                } else {
-                    for (Places p : list) {
-                        mapPlaces.put(p.getObjectId(), p);
-                    }
-
-                }
-            }
-        });
-        */
-
     }
 
-    /*
-    private void updateAlarm() {
-
-        AlarmManager alarmMgr;
-        PendingIntent alarmIntent;
-
-        alarmMgr = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        alarmIntent = PendingIntent.getActivity(getApplicationContext(), ALARM_ARRIVED , intent, 0);
-
-        alarmMgr.cancel(alarmIntent);
-
-        long t = getTimeForNextEvent(driverDetail);
-        if (t > 0 ) {
-            alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + t, alarmIntent);
-        }
-
-    }
-    */
 
     /*
   * Displays a circle on the map representing the search radius
