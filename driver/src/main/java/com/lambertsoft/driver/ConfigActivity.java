@@ -182,8 +182,9 @@ public class ConfigActivity extends Activity {
 
         try {
 
-            ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
-            List<DriverDetail> driverDetailList = query.find();
+            ParseQuery<DriverDetail> queryDriver = ParseQuery.getQuery("DriverDetail");
+            queryDriver.whereEqualTo("channel", ParseUser.getCurrentUser().getObjectId());
+            List<DriverDetail> driverDetailList = queryDriver.find();
             if (driverDetailList.size() > 0) {
                 driverDetail = driverDetailList.get(0);
                 ParseFile file = driverDetail.getPhoto();
@@ -328,7 +329,9 @@ public class ConfigActivity extends Activity {
         driverDetail.setToMinutes(toMinutes);
 
         ParseACL acl = new ParseACL(ParseUser.getCurrentUser());
+        acl.setPublicReadAccess(true);
         driverDetail.setACL(acl);
+
 
         driverDetail.saveInBackground(new SaveCallback() {
             @Override

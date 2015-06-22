@@ -410,6 +410,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
            updatePlaces();
 
             ParseQuery<DriverDetail> queryDriver = ParseQuery.getQuery("DriverDetail");
+            queryDriver.whereEqualTo("channel", ParseUser.getCurrentUser().getObjectId());
             List<DriverDetail> qList = queryDriver.find();
             if (qList.size() > 0 ) {
                 driverDetail = qList.get(0);

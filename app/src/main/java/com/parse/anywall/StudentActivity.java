@@ -22,13 +22,19 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.lambertsoft.base.DriverDetail;
 import com.lambertsoft.base.Places;
 import com.lambertsoft.base.School;
 import com.parse.DeleteCallback;
+import com.parse.FindCallback;
+import com.parse.FunctionCallback;
 import com.parse.GetDataCallback;
 import com.parse.ParseACL;
+import com.parse.ParseClassName;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseFile;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
@@ -39,6 +45,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Activity which displays a login screen to the user, offering registration as well.
@@ -64,7 +71,7 @@ public class StudentActivity extends FragmentActivity {
 
   ImageView imgStudent;
   EditText textStudentName;
-  TextView textSchoolName;
+  TextView textSchoolName, textDriverAlias;
   TextView textFrom_InitDate, textFrom_EndDate;
   ImageView imgSchool, imgPlaces;
   Button btnStudentAction, btnStudentDelete;
@@ -91,6 +98,7 @@ public class StudentActivity extends FragmentActivity {
     imgStudent = (ImageView) findViewById(R.id.imgStudent);
     textStudentName = (EditText) findViewById(R.id.textStudentName);
     textSchoolName = (TextView) findViewById(R.id.textSchoolName);
+    textDriverAlias = (TextView) findViewById(R.id.textDriverAlias);
 
     textFrom_InitDate = (TextView) findViewById(R.id.textFrom_InitDate);
     textFrom_EndDate = (TextView) findViewById(R.id.textFrom_EndDate);
@@ -139,6 +147,39 @@ public class StudentActivity extends FragmentActivity {
           intent.putExtra(SchoolListActivity.SCHOOL_OBJECT_ID, actualSchool.getObjectId());
         }
         startActivityForResult(intent, REQUEST_SCHOOL_OBJECT);
+      }
+    });
+
+    textDriverAlias.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+
+        if (actualSchool != null ) {
+
+          ParseQuery<DriverDetail> queryDriver = ParseQuery.getQuery("DriverDetail");
+          queryDriver.whereEqualTo("school", actualSchool);
+          queryDriver.findInBackground(new FindCallback<DriverDetail>() {
+            @Override
+            public void done(List<DriverDetail> dList, ParseException e) {
+              if (e != null ) {
+                Log.e(TAG, "Error en findInBackground DriverDetail " + e.toString());
+              } else if  (dList.size() == 0 ) {
+                Toast.makeText(getApplicationContext(),"No se encontraron Choferes ", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "No se encontraron Choferes ");
+              } else {
+                for (DriverDetail d : dList) {
+                  Toast.makeText(getApplicationContext(), "Nombre : " + d.getAlias(), Toast.LENGTH_SHORT).show();
+                  Log.d(TAG, "Nombre : " + d.getAlias());
+                }
+              }
+            }
+          });
+
+        } else {
+          Toast.makeText(getApplicationContext(), "Escoger Colegio", Toast.LENGTH_SHORT).show();
+        }
+
       }
     });
 
