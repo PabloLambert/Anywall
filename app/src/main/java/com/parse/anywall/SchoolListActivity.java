@@ -30,7 +30,7 @@ public class SchoolListActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_school_list);
 
-        schoolListView = (ListView) findViewById(R.id.listSchoolView);
+        schoolListView = (ListView) findViewById(R.id.listDriverView);
         btnSelectedSchool = (Button) findViewById(R.id.btnSelectedSchool);
 
         ArrayList<School> schoolArrayList = new ArrayList<School>();

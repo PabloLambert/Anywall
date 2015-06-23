@@ -93,6 +93,10 @@
             android:name=".SchoolActivity"
             android:label="@string/title_activity_school" >
         </activity>
+        <activity
+            android:name=".DriverListActivity"
+            android:label="@string/title_activity_driver_list" >
+        </activity>
     </application>
 
 </manifest>

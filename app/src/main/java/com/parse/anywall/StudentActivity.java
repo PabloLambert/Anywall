@@ -59,6 +59,7 @@ public class StudentActivity extends FragmentActivity {
   final static public int REQUEST_IMAGE_CAPTURE = 0;
   final static public int REQUEST_SCHOOL_OBJECT = 1;
   final static public int REQUEST_PLACES_OBJECT = 2;
+  final static public int REQUEST_DRIVER_OBJECT = 3;
 
   final static public Calendar c = Calendar.getInstance();
   final static public int DEFAULT_HOUR_DAY = c.get(Calendar.HOUR_OF_DAY);
@@ -82,6 +83,7 @@ public class StudentActivity extends FragmentActivity {
   Student student;
   School actualSchool;
   Places actualPlaces;
+  DriverDetail actualDriver;
 
   int fromInitHourDay = DEFAULT_HOUR_DAY, fromInitMinutes = DEFAULT_MINUTES;
   int fromEndHourDay = DEFAULT_HOUR_DAY, fromEndMinutes = DEFAULT_MINUTES+30;
@@ -154,9 +156,19 @@ public class StudentActivity extends FragmentActivity {
       @Override
       public void onClick(View view) {
 
-
         if (actualSchool != null ) {
 
+          Intent intent = new Intent(StudentActivity.this, DriverListActivity.class);
+          intent.putExtra(DriverListActivity.SCHOOL_OBJECT_ID, actualSchool.getObjectId());
+
+          if (actualDriver != null) {
+            intent.putExtra(DriverListActivity.DRIVER_OBJECT_ID, actualDriver.getObjectId());
+          }
+          startActivityForResult(intent, REQUEST_DRIVER_OBJECT);
+
+
+
+          /*
           ParseQuery<DriverDetail> queryDriver = ParseQuery.getQuery("DriverDetail");
           queryDriver.whereEqualTo("school", actualSchool);
           queryDriver.findInBackground(new FindCallback<DriverDetail>() {
@@ -175,6 +187,7 @@ public class StudentActivity extends FragmentActivity {
               }
             }
           });
+          */
 
         } else {
           Toast.makeText(getApplicationContext(), "Escoger Colegio", Toast.LENGTH_SHORT).show();
@@ -284,11 +297,19 @@ public class StudentActivity extends FragmentActivity {
         textSchoolName.setText(school.getName());
         textSchoolName.setTag(school.getObjectId());
       }
-
       if (student.getPlaces() != null ) {
         String placesObjId = student.getPlaces().getObjectId();
         if (placesObjId != null )
           actualPlaces = MainActivity.mapPlaces.get(placesObjId);
+      }
+      if (student.getDriverDetail() != null ) {
+        String driverObjId = student.getDriverDetail().getObjectId();
+        if (driverObjId != null) {
+          actualDriver = MainActivity.mapDriverDetails.get(driverObjId);
+          textDriverAlias.setText(actualDriver.getAlias());
+          textDriverAlias.setTag(actualDriver.getObjectId());
+
+        }
       }
 
       fromInitHourDay = student.getFromInitHourOfDay();
@@ -338,6 +359,12 @@ public class StudentActivity extends FragmentActivity {
       String sObjId = data.getStringExtra(PlacesActivity.PLACES_OBJECT_ID);
       actualPlaces = MainActivity.mapPlaces.get(sObjId);
       Log.d(TAG, "actualPlaces = " + actualPlaces.getName());
+    } else if (requestCode == REQUEST_DRIVER_OBJECT && resultCode == RESULT_OK) {
+      String sObjId = data.getStringExtra(DriverListActivity.DRIVER_OBJECT_ID);
+      actualDriver = MainActivity.mapDriverDetails.get(sObjId);
+      textDriverAlias.setText(actualDriver.getAlias());
+      textDriverAlias.setTag(actualDriver.getObjectId());
+      Log.d(TAG, "actualDriver = " + actualDriver.getAlias());
     }
   }
 
@@ -412,6 +439,13 @@ public class StudentActivity extends FragmentActivity {
 
     if (actualPlaces != null )
       s.setPlaces(actualPlaces);
+
+    String dObj = (String) textDriverAlias.getTag();
+    if (dObj != null ) {
+      s.setDriverDetail(MainActivity.mapDriverDetails.get(dObj));
+    } else {
+      Toast.makeText(getApplicationContext(), "Error en DriverDetail", Toast.LENGTH_SHORT).show();
+    }
 
     s.setFromInitHourOfDay(fromInitHourDay);
     s.setFromInitMinutes(fromInitMinutes);

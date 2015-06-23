@@ -1,5 +1,6 @@
 package com.parse.anywall;
 
+import com.lambertsoft.base.DriverDetail;
 import com.lambertsoft.base.Places;
 import com.lambertsoft.base.School;
 import com.parse.ParseClassName;
@@ -39,6 +40,10 @@ public class Student extends ParseObject {
     public void setPlaces(Places value) {put("places", value); }
 
     public Places getPlaces() { return (Places) getParseObject("places"); }
+
+    public void setDriverDetail(DriverDetail value) { put("driver", value);}
+
+    public DriverDetail getDriverDetail() { return  (DriverDetail) getParseObject("driver");}
 
     //From
     public int getFromInitHourOfDay() { return getInt("fromInit_hourofday");}

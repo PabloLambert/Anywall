@@ -149,9 +149,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private ImageButton btnAddPlace, btnAddStudent;
   private LinearLayout llPlaces, llStudents;
-  private TextView textStatus, textDrivers, textCount;
+  private TextView textStatus, textCount;
   private Button btnSubscribe, btnUnsubscribe;
-  private Spinner spinnerDriver;
   private int countPlaces = 0, countStudents = 0, countEvents = 0;
 
   private Map<String, Marker> mapMarkers2 = new HashMap<String, Marker>();
@@ -218,23 +217,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     textCount = (TextView) findViewById(R.id.txtCount);
 
-    spinnerDriver = (Spinner) findViewById(R.id.spinnerDriver);
-    textDrivers = (TextView) findViewById(R.id.textDrivers);
-    textDrivers.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        ArrayList<String> driverDetailList = new ArrayList<String>();
-        for (Iterator<DriverDetail> iterator = mapDriverDetails.values().iterator(); iterator.hasNext(); ) {
-          DriverDetail _p = iterator.next();
-          driverDetailList.add(_p.getChannel());
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, driverDetailList);
-        spinnerDriver.setAdapter(adapter);
-
-      }
-    });
-
 
     // Set up the map fragment
     mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
@@ -251,9 +233,23 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       public void onClick(View view) {
 
         try {
-          pubnub.subscribe(spinnerDriver.getSelectedItem().toString(), subscribeCallback);
-          //pubnub.subscribe("xCoXRDQo96", subscribeCallback);
-          Log.d(TAG, "Subscribed to Channel");
+
+          for (int i = 0; i < llStudents.getChildCount(); i++) {
+            View v = llStudents.getChildAt(i);
+            String sObjId = (String) v.getTag();
+            Student s = mapStudent.get(sObjId);
+            if ( s != null && s.getDriverDetail() != null ) {
+              DriverDetail d = s.getDriverDetail();
+              if (d != null) {
+                d = mapDriverDetails.get(d.getObjectId());
+                pubnub.subscribe(d.getChannel().toString(), subscribeCallback);
+                Log.d(TAG, "Subscribed to Channel");
+
+              }
+            }
+
+          }
+
         } catch (PubnubException e) {
           Log.e(TAG, e.toString());
         }
@@ -266,7 +262,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
       @Override
       public void onClick(View view) {
         try {
-          pubnub.unsubscribe(spinnerDriver.getSelectedItem().toString());
+          //pubnub.unsubscribe(spinnerDriver.getSelectedItem().toString());
           Log.d(TAG, "Unsubscribed to Channel");
 
         } catch (Exception e ) {
@@ -365,13 +361,10 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     mapFragment.getMap().clear();
     mapMarkers2.clear();
 
-    //doPlacesQuery();
-    doStudentQuery();
-    //doSchoolQuery();
-    doDriverDetailQuery();
 
     try {
 
+      mapSchool.clear();
       ParseQuery<School> querySchool = ParseQuery.getQuery("School");
       List<School> sList = querySchool.find();
       for (School s : sList) {
@@ -380,11 +373,32 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
       updatePlaces();
 
+      mapDriverDetails.clear();
+      ParseQuery<DriverDetail> queryDriver = ParseQuery.getQuery("DriverDetail");
+      List<DriverDetail> dList = queryDriver.find();
+      for (DriverDetail d : dList) {
+        mapDriverDetails.put(d.getObjectId(), d);
+      }
+
+      mapStudent.clear();
+      ParseQuery<Student> queryStudent = ParseQuery.getQuery("Student");
+      List<Student> stList = queryStudent.find();
+      for (Student s : stList) {
+        mapStudent.put(s.getObjectId(), s);
+      }
+
+
+
     } catch (ParseException e){
       Toast.makeText(getApplicationContext(), "Error en onResume", Toast.LENGTH_SHORT).show();
       Log.e(TAG, "Error en onResume" +e.toString());
 
     }
+
+
+    //doPlacesQuery();
+    doStudentQuery();
+    //doSchoolQuery();
 
 
   }
@@ -660,31 +674,19 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private void doStudentQuery() {
 
-    llStudents.removeViews(0, countStudents);
-    mapStudent.clear();
+    int countStudents = llStudents.getChildCount();
+    llStudents.removeViews(0, countStudents - 1);
 
-    ParseQuery<Student> query = ParseQuery.getQuery("Student");
-    query.findInBackground(new FindCallback<Student>() {
-      @Override
-      public void done(List<Student> list, ParseException e) {
-        if (e != null) {
-          Toast.makeText(getApplicationContext(), "Error en obtener estudiantes", Toast.LENGTH_SHORT).show();
-        } else {
-
-          countStudents = list.size();
-          for (int i = 0; i < countStudents; i++) {
+    for (Iterator<Student> iterator = MainActivity.mapStudent.values().iterator(); iterator.hasNext(); ){
+            Student s = iterator.next();
             Button tmpButton = new Button(getApplicationContext());
-            Student s = list.get(i);
             tmpButton.setText(s.getName());
-            mapStudent.put(s.getObjectId(), s);
             tmpButton.setTag(s.getObjectId());
             addActionStudents(tmpButton);
-            llStudents.addView(tmpButton, i);
+            llStudents.addView(tmpButton);
 
-          }
-        }
-      }
-    });
+    }
+
 
   }
 
@@ -732,23 +734,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   }
 
-  private void doDriverDetailQuery() {
-
-    ParseQuery<DriverDetail> query = ParseQuery.getQuery("DriverDetail");
-    query.findInBackground(new FindCallback<DriverDetail>() {
-      @Override
-      public void done(List<DriverDetail> list, ParseException e) {
-        if (e != null) {
-          Toast.makeText(getApplicationContext(), "Error en obtener DriverDetail", Toast.LENGTH_SHORT).show();
-        } else {
-          for (DriverDetail d : list) {
-            mapDriverDetails.put(d.getObjectId(), d);
-          }
-        }
-      }
-    });
-
-  }
 
   private void updateStatus() {
     Calendar now = Calendar.getInstance();

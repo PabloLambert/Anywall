@@ -23,5 +23,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_school_list">SchoolListActivity</string>
     <string name="title_activity_school">SchoolActivity</string>
+    <string name="title_activity_driver_list">DriverListActivity</string>
 
 </resources>

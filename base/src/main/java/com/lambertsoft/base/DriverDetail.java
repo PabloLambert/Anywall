@@ -12,6 +12,10 @@ import com.parse.ParseQuery;
 @ParseClassName("DriverDetail")
 public class DriverDetail  extends ParseObject {
 
+    public String toString() {
+        return getAlias();
+    }
+
     public void setAlias(String value) {put("alias", value);}
 
     public String getAlias() { return getString("alias");}
