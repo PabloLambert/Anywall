@@ -13,6 +13,7 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -237,6 +238,11 @@ public class PlacesActivity extends FragmentActivity {
         });
     }
 
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -312,6 +318,8 @@ public class PlacesActivity extends FragmentActivity {
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
             }
             updateButtonState();
+            hideSoftKeyboard(PlacesActivity.this);
+
         }
     }
 

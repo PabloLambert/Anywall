@@ -50,12 +50,34 @@ public class SchoolListActivity extends Activity {
 
         Intent intent = getIntent();
         String sObjId = intent.getStringExtra(SCHOOL_OBJECT_ID);
-
         if (sObjId != null ) {
             actualSchool = MainActivity.mapSchool.get(sObjId);
         }
 
-        btnSelectedSchool.setOnClickListener(new View.OnClickListener() {
+
+        if (actualSchool != null ) {
+            for (int i = 0; i < schoolListView.getCount(); i++) {
+                School s = (School) schoolListView.getItemAtPosition(i);
+                if (s.getObjectId().compareTo(actualSchool.getObjectId()) == 0 ) {
+                    //schoolListView.setSelection(i);
+                    //schoolListView.getSelectedView().setSelected(true);
+                    //schoolListView.setItemChecked(i, true);
+                    //schoolListView.performItemClick(schoolListView, i, schoolListView.getItemIdAtPosition(i));
+                    //schoolListView.performItemClick(
+                    //        schoolListView.getAdapter().getView(i, null, null),
+                    //        i,
+                    //        schoolListView.getAdapter().getItemId(i));
+
+                    //schoolListView.requestFocusFromTouch();
+                    //schoolListView.setSelection(i);
+                    //schoolListView.getAdapter().getView(i, null, null).performClick();
+                    schoolListView.performItemClick(null, i, schoolListView.getItemIdAtPosition(i) );
+                }
+            }
+        }
+
+
+            btnSelectedSchool.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent();

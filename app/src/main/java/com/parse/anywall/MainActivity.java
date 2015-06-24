@@ -674,8 +674,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
   private void doStudentQuery() {
 
-    int countStudents = llStudents.getChildCount();
-    llStudents.removeViews(0, countStudents - 1);
+    llStudents.removeAllViews();
 
     for (Iterator<Student> iterator = MainActivity.mapStudent.values().iterator(); iterator.hasNext(); ){
             Student s = iterator.next();

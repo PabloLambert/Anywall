@@ -68,8 +68,8 @@
         jar="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/exploded-aar/Anywall/base/unspecified/classes.jar"
         jumboMode="false"
         revision="21.1.2"
-        sha1="e0ddf9bb951e93a4e0e30fa99cc5232913daf1d5">
-        <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/debug/classes-246b0c6f3ba05c625dba0030057d6df9aabcf21d.jar" />
+        sha1="cf39a4d9ace7d5db9557a332c9b66b47c66e23f3">
+        <dex dex="/Users/InnovaTI/AndroidStudioProjects/Anywall/driver/build/intermediates/pre-dexed/release/classes-246b0c6f3ba05c625dba0030057d6df9aabcf21d.jar" />
     </item>
     <item
         jar="/Users/InnovaTI/AndroidStudioProjects/Anywall/app/build/intermediates/exploded-aar/com.google.android.gms/play-services/6.1.71/classes.jar"
